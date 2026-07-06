@@ -1,0 +1,315 @@
+"use server";
+
+import { createRelationshipSchema, joinRelationshipSchema, type CreateRelationshipInput, type JoinRelationshipInput } from "../schemas";
+import { getSession } from "@/features/auth/actions";
+import { prisma } from "@/lib/prisma";
+import { randomUUID } from "crypto";
+import { cookies } from "next/headers";
+import { INVITATION_EXPIRY_DAYS } from "@/config/constants";
+import { generateShortCode } from "@/lib/utils";
+import { generateAutoEventsForRelationship } from "@/lib/auto-events";
+import { revalidatePath } from "next/cache";
+import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
+
+export async function createRelationship(input: CreateRelationshipInput) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED", message: "Please login first" } };
+
+    const parsed = createRelationshipSchema.parse(input);
+
+    const existing = await prisma.relationship.findFirst({
+      where: {
+        OR: [{ partnerAId: session.user.id }, { partnerBId: session.user.id }],
+        deletedAt: null,
+        status: { in: ["WAITING_PARTNER", "ACTIVE"] },
+      },
+    });
+
+    if (existing) return { success: false, error: { code: "ALREADY_IN_RELATIONSHIP", message: "You already have an active relationship" } };
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS);
+    const invitationToken = randomUUID();
+    const shortCode = generateShortCode();
+
+    const relationship = await prisma.$transaction(async (tx) => {
+      const rel = await tx.relationship.create({
+        data: {
+          name: parsed.name || null,
+          partnerAId: session.user.id,
+          startedAt: new Date(parsed.startedAt),
+        },
+      });
+
+      await tx.invitation.create({
+        data: {
+          relationshipId: rel.id,
+          token: invitationToken,
+          shortCode,
+          expiredAt: expiresAt,
+        },
+      });
+
+      return rel;
+    });
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get("detto_session")?.value;
+    if (token) {
+      await prisma.session.update({ where: { token }, data: { relationshipId: relationship.id } });
+    }
+
+    return {
+      success: true,
+      data: { relationshipId: relationship.id, invitationToken, shortCode },
+    };
+  } catch (err) {
+    console.error("createRelationship error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR", message: "Failed to create relationship" } };
+  }
+}
+
+export async function joinRelationship(input: JoinRelationshipInput) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED", message: "Please login first" } };
+
+    const parsed = joinRelationshipSchema.parse(input);
+    const code = parsed.shortCode.toUpperCase();
+
+    const invitation = await prisma.invitation.findUnique({ where: { shortCode: code } });
+    if (!invitation) return { success: false, error: { code: "INVITATION_INVALID", message: "Invalid invitation code" } };
+    if (invitation.status !== "PENDING") return { success: false, error: { code: "INVITATION_INVALID", message: "Invitation is no longer active" } };
+    if (invitation.expiredAt < new Date()) return { success: false, error: { code: "INVITATION_EXPIRED", message: "Invitation has expired" } };
+
+    const relationship = await prisma.relationship.findUnique({ where: { id: invitation.relationshipId } });
+    if (!relationship) return { success: false, error: { code: "RELATIONSHIP_NOT_FOUND", message: "Relationship not found" } };
+    if (relationship.partnerAId === session.user.id) return { success: false, error: { code: "SELF_JOIN", message: "You can't join your own invitation" } };
+    if (relationship.partnerBId) return { success: false, error: { code: "WORKSPACE_FULL", message: "Workspace is full" } };
+
+    const existingRel = await prisma.relationship.findFirst({
+      where: {
+        OR: [{ partnerAId: session.user.id }, { partnerBId: session.user.id }],
+        deletedAt: null,
+        status: { in: ["WAITING_PARTNER", "ACTIVE"] },
+        id: { not: relationship.id },
+      },
+    });
+    if (existingRel) return { success: false, error: { code: "ALREADY_IN_RELATIONSHIP", message: "You already have an active relationship" } };
+
+    await prisma.$transaction(async (tx) => {
+      await tx.relationship.update({
+        where: { id: relationship.id },
+        data: { partnerBId: session.user.id, status: "ACTIVE" },
+      });
+      await tx.invitation.update({
+        where: { id: invitation.id },
+        data: { status: "ACCEPTED" },
+      });
+    });
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get("detto_session")?.value;
+    if (token) {
+      await prisma.session.update({ where: { token }, data: { relationshipId: relationship.id } });
+    }
+
+    // Generate auto events (birthdays + anniversary)
+    await generateAutoEventsForRelationship(relationship.id);
+
+    return { success: true, data: { relationshipId: relationship.id } };
+  } catch (err) {
+    console.error("joinRelationship error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR", message: "Failed to join relationship" } };
+  }
+}
+
+export async function joinByShortCode(shortCode: string) {
+  return joinRelationship({ shortCode });
+}
+
+export async function validateInvitationByCode(shortCode: string) {
+  const code = shortCode.toUpperCase();
+  const invitation = await prisma.invitation.findUnique({
+    where: { shortCode: code },
+    include: {
+      relationship: {
+        include: {
+          partnerA: { select: { id: true, displayName: true, avatarUrl: true } },
+        },
+      },
+    },
+  });
+
+  if (!invitation) return { success: false, error: { code: "INVITATION_INVALID", message: "Invalid invitation code" } };
+  if (invitation.status !== "PENDING") return { success: false, error: { code: "INVITATION_INVALID", message: "Invitation is no longer active" } };
+  if (invitation.expiredAt < new Date()) return { success: false, error: { code: "INVITATION_EXPIRED", message: "Invitation has expired" } };
+
+  return {
+    success: true,
+    data: {
+      inviterName: invitation.relationship.partnerA.displayName,
+      relationshipId: invitation.relationshipId,
+    },
+  };
+}
+
+export async function getCurrentRelationship() {
+  try {
+    const session = await getSession();
+    if (!session) return null;
+
+    return prisma.relationship.findFirst({
+      where: {
+        OR: [{ partnerAId: session.user.id }, { partnerBId: session.user.id }],
+        deletedAt: null,
+        status: { in: ["WAITING_PARTNER", "ACTIVE"] },
+      },
+      include: {
+        partnerA: { select: { id: true, displayName: true, username: true, avatarUrl: true, birthDate: true } },
+        partnerB: { select: { id: true, displayName: true, username: true, avatarUrl: true, birthDate: true } },
+      },
+    });
+  } catch (err) {
+    console.error("getCurrentRelationship error:", err);
+    return null;
+  }
+}
+
+export async function updateRelationship(input: {
+  name?: string;
+  partnerANickname?: string;
+  partnerBNickname?: string;
+  startedAt?: string;
+  engagementDate?: string;
+  marriedAt?: string;
+}) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
+
+    const data: Record<string, string | Date | null> = {};
+    if (input.name !== undefined) data.name = input.name || null;
+    if (input.partnerANickname !== undefined) data.partnerANickname = input.partnerANickname || null;
+    if (input.partnerBNickname !== undefined) data.partnerBNickname = input.partnerBNickname || null;
+    if (input.startedAt) data.startedAt = new Date(input.startedAt);
+    if (input.engagementDate !== undefined) data.engagementDate = input.engagementDate ? new Date(input.engagementDate) : null;
+    if (input.marriedAt !== undefined) data.marriedAt = input.marriedAt ? new Date(input.marriedAt) : null;
+
+    if (Object.keys(data).length === 0) return { success: true };
+
+    await prisma.relationship.update({
+      where: { id: relationship.id },
+      data,
+    });
+
+    revalidatePath("/relation");
+    revalidatePath("/home");
+    return { success: true };
+  } catch (err) {
+    console.error("updateRelationship error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+export async function getPendingInvitation() {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: true, data: null };
+
+    const invitation = await prisma.invitation.findFirst({
+      where: {
+        relationshipId: relationship.id,
+        status: "PENDING",
+        expiredAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { shortCode: true, expiredAt: true },
+    });
+
+    if (!invitation) return { success: true, data: null };
+
+    return {
+      success: true,
+      data: {
+        shortCode: invitation.shortCode,
+        expiredAt: invitation.expiredAt.toISOString(),
+      },
+    };
+  } catch (err) {
+    console.error("getPendingInvitation error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+export async function uploadBanner(file: File) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "detto/relationship-banners",
+      resource_type: "image",
+    });
+
+    await prisma.relationship.update({
+      where: { id: relationship.id },
+      data: { bannerUrl: result.secure_url },
+    });
+
+    // Delete old banner from Cloudinary
+    if (relationship.bannerUrl) {
+      await deleteFromCloudinaryByUrl(relationship.bannerUrl);
+    }
+
+    revalidatePath("/relation");
+    revalidatePath("/home");
+
+    return { success: true, data: { url: result.secure_url } };
+  } catch (err) {
+    console.error("uploadBanner error:", err);
+    return { success: false, error: { code: "UPLOAD_FAILED" } };
+  }
+}
+
+export async function removeBanner() {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
+
+    await prisma.relationship.update({
+      where: { id: relationship.id },
+      data: { bannerUrl: null },
+    });
+
+    // Delete banner from Cloudinary
+    if (relationship.bannerUrl) {
+      await deleteFromCloudinaryByUrl(relationship.bannerUrl);
+    }
+
+    revalidatePath("/relation");
+    revalidatePath("/home");
+
+    return { success: true };
+  } catch (err) {
+    console.error("removeBanner error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
