@@ -13,7 +13,14 @@ import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" style={{ background: "var(--bg-page)" }} />}>
+    <Suspense
+      fallback={
+        <div
+          className="min-h-screen"
+          style={{ background: "var(--bg-page)" }}
+        />
+      }
+    >
       <LoginContent />
     </Suspense>
   );
@@ -44,7 +51,10 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-8 relative overflow-hidden" style={{ background: "var(--bg-page)" }}>
+    <div
+      className="min-h-screen flex flex-col px-6 py-8 relative overflow-hidden"
+      style={{ background: "var(--bg-page)" }}
+    >
       <PageBlobs seed={1} />
 
       {/* Back button */}
@@ -64,15 +74,13 @@ function LoginContent() {
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
-          >
-            <LogIn size={28} style={{ color: "var(--accent)" }} />
-          </div>
           <h1
             className="font-bold tracking-[-0.02em] mb-1"
-            style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", color: "var(--text-primary)" }}
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "1.5rem",
+              color: "var(--text-primary)",
+            }}
           >
             Sign In
           </h1>
@@ -100,7 +108,10 @@ function LoginContent() {
           />
 
           {inviteCode && (
-            <p className="text-[0.8rem] text-center" style={{ color: "var(--accent)" }}>
+            <p
+              className="text-[0.8rem] text-center"
+              style={{ color: "var(--accent)" }}
+            >
               You'll be brought back to your shared space right after signing in
             </p>
           )}
@@ -115,7 +126,10 @@ function LoginContent() {
         </form>
 
         {/* Footer */}
-        <p className="text-center text-[0.9rem] mt-8" style={{ color: "var(--text-secondary)" }}>
+        <p
+          className="text-center text-[0.9rem] mt-8"
+          style={{ color: "var(--text-secondary)" }}
+        >
           Don&apos;t have an account?{" "}
           <Link
             href={`/register${inviteCode ? `?invite=${inviteCode}` : ""}`}

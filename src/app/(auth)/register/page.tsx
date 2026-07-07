@@ -75,7 +75,10 @@ function RegisterContent() {
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age >= 14;
@@ -216,7 +219,7 @@ function RegisterContent() {
       )}
 
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-95 mx-auto">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-95 mx-auto border">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -332,7 +335,13 @@ function RegisterContent() {
                   name="birthDate"
                   type="date"
                   value={birthDate}
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 14)).toISOString().split("T")[0]}
+                  max={
+                    new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 14),
+                    )
+                      .toISOString()
+                      .split("T")[0]
+                  }
                   onChange={(e) => setBirthDate(e.target.value)}
                 />
                 {birthDate && !isOldEnough(birthDate) && (

@@ -23,20 +23,18 @@ export function PageBlobs({ seed }: PageBlobsProps) {
   const [img1, img2] = useMemo(() => getPair(seed), [seed]);
 
   return (
-    <>
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       <img
         src={`/decor/${img1}.png`}
         alt=""
-        aria-hidden="true"
-        className="absolute -top-20 -right-20 w-64 h-64 object-contain opacity-25 pointer-events-none"
+        className="absolute -top-20 -right-20 w-64 h-64 object-contain opacity-25"
       />
       <img
         src={`/decor/${img2}.png`}
         alt=""
-        aria-hidden="true"
-        className="absolute -bottom-16 -left-16 w-48 h-48 object-contain opacity-20 pointer-events-none"
+        className="absolute -bottom-16 -left-16 w-48 h-48 object-contain opacity-20"
       />
-    </>
+    </div>
   );
 }
 
