@@ -12,12 +12,15 @@ export async function getDashboardData() {
   if (!relationship) return { success: true, data: { relationship: null } };
 
   const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const oneMonthLater = new Date(startOfToday);
+  oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
 
   const [nextEvent, upcomingEvents, recentPhotos, totalEvents, totalPhotos, avgRatingResult] = await Promise.all([
     prisma.event.findFirst({
       where: {
         relationshipId: relationship.id,
-        date: { gte: now, lte: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()) },
+        date: { gte: startOfToday, lte: oneMonthLater },
         deletedAt: null,
         status: "UPCOMING",
       },
@@ -28,7 +31,7 @@ export async function getDashboardData() {
       where: {
         relationshipId: relationship.id,
         deletedAt: null,
-        date: { gte: now, lte: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()) },
+        date: { gte: startOfToday, lte: oneMonthLater },
         status: "UPCOMING",
       },
       orderBy: { date: "asc" },

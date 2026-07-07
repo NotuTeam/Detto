@@ -7,6 +7,7 @@ CREATE TABLE "User" (
     "username" TEXT NOT NULL,
     "displayName" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
+    "birthdayAutoGenerate" BOOLEAN NOT NULL DEFAULT true,
     "birthDate" TIMESTAMP(3) NOT NULL,
     "avatarUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
