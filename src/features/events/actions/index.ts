@@ -47,7 +47,7 @@ export async function getEventsByMonth(year: number, month: number) {
       },
     });
 
-    const serialized = events.map((e) => ({
+    const serialized = events.map((e: (typeof events)[number]) => ({
       ...e,
       date: e.date.toISOString(),
     }));

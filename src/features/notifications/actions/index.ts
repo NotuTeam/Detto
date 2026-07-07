@@ -36,7 +36,7 @@ export async function getNotifications(limit = 50) {
       },
     });
 
-    const serialized: NotificationItem[] = notifications.map((n) => ({
+    const serialized: NotificationItem[] = notifications.map((n: (typeof notifications)[number]) => ({
       id: n.id,
       type: n.type,
       title: n.title,

@@ -69,7 +69,7 @@ export async function getActiveNotes() {
       },
     });
 
-    const serialized = notes.map((n) => ({
+    const serialized = notes.map((n: (typeof notes)[number]) => ({
       ...n,
       createdAt: n.createdAt.toISOString(),
       expiresAt: n.expiresAt.toISOString(),

@@ -66,7 +66,7 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
       nextCursor = next!.createdAt.toISOString();
     }
 
-    const serialized = photos.map((p) => ({
+    const serialized = photos.map((p: (typeof photos)[number]) => ({
       ...p,
       createdAt: p.createdAt.toISOString(),
       event: {
@@ -189,7 +189,7 @@ export async function getRelationshipEvents() {
 
     return {
       success: true,
-      data: events.map((e) => ({
+      data: events.map((e: (typeof events)[number]) => ({
         ...e,
         date: e.date.toISOString(),
       })),

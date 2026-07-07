@@ -3,6 +3,7 @@
 import { createRelationshipSchema, joinRelationshipSchema, type CreateRelationshipInput, type JoinRelationshipInput } from "../schemas";
 import { getSession } from "@/features/auth/actions";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { INVITATION_EXPIRY_DAYS } from "@/config/constants";

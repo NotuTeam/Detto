@@ -1,16 +1,27 @@
 import webPush from "web-push";
 import { prisma } from "./prisma";
 
-webPush.setVapidDetails(
-  process.env.WEB_PUSH_EMAIL || "mailto:dev@detto.app",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
-  process.env.VAPID_PRIVATE_KEY || ""
-);
+let vapidInitialized = false;
+
+function ensureVapid() {
+  if (vapidInitialized) return;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (publicKey && privateKey) {
+    webPush.setVapidDetails(
+      process.env.WEB_PUSH_EMAIL || "mailto:dev@detto.app",
+      publicKey,
+      privateKey
+    );
+    vapidInitialized = true;
+  }
+}
 
 export async function sendPushNotification(
   userId: string,
   payload: { title: string; body: string; url?: string }
 ) {
+  ensureVapid();
   const subscriptions = await prisma.pushSubscription.findMany({
     where: { userId },
   });
