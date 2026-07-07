@@ -150,6 +150,25 @@ export async function savePushSubscription(subscription: {
   }
 }
 
+export async function removePushSubscription(endpoint: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    await prisma.pushSubscription.deleteMany({
+      where: {
+        userId: session.user.id,
+        endpoint,
+      },
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("removePushSubscription error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
 export async function deleteNotification(notificationId: string) {
   try {
     const session = await getSession();

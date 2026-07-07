@@ -1,6 +1,6 @@
 "use client";
 
-import { savePushSubscription } from "@/features/notifications/actions";
+import { savePushSubscription, removePushSubscription } from "@/features/notifications/actions";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -56,6 +56,26 @@ export async function subscribePushNotifications(): Promise<boolean> {
     return result.success;
   } catch (err) {
     console.error("Push subscription failed:", err);
+    return false;
+  }
+}
+
+export async function unsubscribePushNotifications(): Promise<boolean> {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) return true;
+
+    const endpoint = subscription.endpoint;
+    await subscription.unsubscribe();
+
+    // Remove from server
+    await removePushSubscription(endpoint);
+    return true;
+  } catch (err) {
+    console.error("Push unsubscribe failed:", err);
     return false;
   }
 }

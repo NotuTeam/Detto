@@ -11,6 +11,7 @@ import {
   Check,
   Loader2,
   LogOut,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -25,6 +26,11 @@ import {
   changePassword,
 } from "@/features/profile/actions";
 import { logoutUser } from "@/features/auth/actions";
+import {
+  subscribePushNotifications,
+  unsubscribePushNotifications,
+  checkNotificationPermission,
+} from "@/lib/push-client";
 import { useRouter } from "next/navigation";
 
 interface ProfileData {
@@ -64,6 +70,10 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
+  // Notifications
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">("default");
+  const [notifLoading, setNotifLoading] = useState(false);
+
   const fetchProfile = useCallback(async () => {
     const result = await getProfile();
     if (result.success && result.data) {
@@ -72,6 +82,10 @@ export default function ProfilePage() {
       setBirthDate(result.data.birthDate.split("T")[0]);
     }
     setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    checkNotificationPermission().then(setNotifPermission);
   }, []);
 
   useEffect(() => {
@@ -188,6 +202,31 @@ export default function ProfilePage() {
     clearUser();
     clearRelationship();
     router.push("/login");
+  };
+
+  const handleToggleNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      if (notifPermission === "granted") {
+        // Disable: unsubscribe
+        const ok = await unsubscribePushNotifications();
+        if (ok) setNotifPermission("default");
+      } else if (notifPermission === "denied") {
+        // User previously denied -- can't re-request, show guidance
+        alert("Notifications are blocked by your browser. Please enable them in your browser settings.");
+      } else {
+        // Request permission
+        const ok = await subscribePushNotifications();
+        if (ok) {
+          setNotifPermission("granted");
+        } else {
+          setNotifPermission(typeof Notification !== "undefined" ? Notification.permission : "denied");
+        }
+      }
+    } catch (err) {
+      console.error("Notification toggle failed:", err);
+    }
+    setNotifLoading(false);
   };
 
   if (loading) return null;
@@ -424,7 +463,65 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Danger Zone */}
+      {/* Notifications Section */}
+      <div
+        className="rounded-[var(--radius-lg)] p-4 flex flex-col gap-3"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-subtle)",
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <Bell size={16} style={{ color: "var(--accent)" }} />
+          <span
+            className="text-[0.85rem] font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Notifications
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p
+              className="text-[0.85rem] font-medium"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Push Notifications
+            </p>
+            <p className="text-[0.7rem]" style={{ color: "var(--text-secondary)" }}>
+              {notifPermission === "granted"
+                ? "Receiving notes and reminders"
+                : notifPermission === "denied"
+                  ? "Blocked by browser"
+                  : "Get notified about notes and reminders"}
+            </p>
+          </div>
+          <button
+            onClick={handleToggleNotifications}
+            disabled={notifLoading || notifPermission === "unsupported"}
+            className="relative w-12 h-7 rounded-full cursor-pointer transition-colors duration-200 disabled:opacity-50 shrink-0"
+            style={{
+              background: notifPermission === "granted" ? "var(--accent)" : "var(--surface-alt)",
+              border: notifPermission === "granted" ? "none" : "1px solid var(--border-subtle)",
+            }}
+          >
+            <span
+              className="absolute top-0.5 w-6 h-6 rounded-full transition-transform duration-200"
+              style={{
+                background: notifPermission === "granted" ? "var(--text-on-accent)" : "var(--text-secondary)",
+                left: "2px",
+                transform: notifPermission === "granted" ? "translateX(20px)" : "translateX(0)",
+              }}
+            />
+            {notifLoading && (
+              <Loader2 size={14} className="absolute inset-0 m-auto animate-spin" style={{ color: "var(--text-on-accent)" }} />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Account / Danger Zone */}
       <div
         className="rounded-[var(--radius-lg)] p-4 flex flex-col gap-3"
         style={{
