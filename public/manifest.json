@@ -1,24 +1,32 @@
 {
   "name": "Detto",
   "short_name": "Detto",
-  "description": "Every Date Has A Story",
+  "description": "Every Point Has A Story",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#2B1070",
-  "theme_color": "#4A1FA8",
+  "background_color": "#ffffff",
+  "theme_color": "#fe6b5e",
   "orientation": "portrait",
   "categories": ["lifestyle", "social"],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/logo/main.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/logo/main.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/logo/main.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

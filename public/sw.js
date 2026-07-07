@@ -1,4 +1,4 @@
-const CACHE_NAME = "detto-v2";
+const CACHE_NAME = "detto-v3";
 const STATIC_ASSETS = [];
 
 self.addEventListener("install", (event) => {
@@ -76,8 +76,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.body || "",
-    icon: data.icon || "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    icon: data.icon || "/logo/main.png",
+    badge: "/logo/main.png",
     tag: data.tag || "detto-notification",
     renotify: true,
     vibrate: [200, 100, 200],
