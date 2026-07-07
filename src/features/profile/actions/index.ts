@@ -6,6 +6,7 @@ import { updateProfileSchema, changePasswordSchema, type UpdateProfileInput, typ
 import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
 import { hash, verify } from "argon2";
 import { revalidatePath } from "next/cache";
+import { updateAutoEventDateForYear } from "@/lib/auto-events";
 
 export async function getProfile() {
   try {
@@ -47,16 +48,44 @@ export async function updateProfile(input: UpdateProfileInput) {
 
     const parsed = updateProfileSchema.parse(input);
 
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { birthDate: true },
+    });
+
+    const newBirthDate = new Date(parsed.birthDate);
+    const birthDateChanged = user?.birthDate.getTime() !== newBirthDate.getTime();
+
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
         displayName: parsed.displayName,
-        birthDate: new Date(parsed.birthDate),
+        birthDate: newBirthDate,
       },
     });
 
+    // Update birthday auto-event for current year if birthDate changed
+    if (birthDateChanged) {
+      const rel = await prisma.relationship.findFirst({
+        where: {
+          OR: [{ partnerAId: session.user.id }, { partnerBId: session.user.id }],
+          deletedAt: null,
+          status: "ACTIVE",
+        },
+        select: { id: true, partnerAId: true },
+      });
+
+      if (rel) {
+        const tag = rel.partnerAId === session.user.id
+          ? "[AUTO:BIRTHDAY:PARTNER_A]"
+          : "[AUTO:BIRTHDAY:PARTNER_B]";
+        await updateAutoEventDateForYear(rel.id, tag, newBirthDate);
+      }
+    }
+
     revalidatePath("/profile");
     revalidatePath("/home");
+    revalidatePath("/calendar");
 
     return { success: true };
   } catch (err) {

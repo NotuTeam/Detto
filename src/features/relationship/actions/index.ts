@@ -8,7 +8,7 @@ import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { INVITATION_EXPIRY_DAYS } from "@/config/constants";
 import { generateShortCode } from "@/lib/utils";
-import { generateAutoEventsForRelationship } from "@/lib/auto-events";
+import { generateAutoEventsForRelationship, updateAutoEventDateForYear } from "@/lib/auto-events";
 import { revalidatePath } from "next/cache";
 import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
 
@@ -207,6 +207,14 @@ export async function updateRelationship(input: {
       where: { id: relationship.id },
       data,
     });
+
+    // Update auto-events for current year when dates change
+    if (data.startedAt) {
+      await updateAutoEventDateForYear(relationship.id, "[AUTO:ANNIVERSARY]", new Date(data.startedAt as Date));
+    }
+    if (data.marriedAt) {
+      await updateAutoEventDateForYear(relationship.id, "[AUTO:ANNIVERSARY]", new Date(data.marriedAt as Date));
+    }
 
     revalidatePath("/relation");
     revalidatePath("/home");

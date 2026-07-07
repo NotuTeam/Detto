@@ -4,17 +4,17 @@ import { getUnreadCount } from "@/features/notifications/actions";
 interface NotificationState {
   unreadCount: number;
   lastFetchedAt: number;
-  fetchUnreadCount: () => Promise<void>;
+  fetchUnreadCount: (force?: boolean) => Promise<void>;
   setUnreadCount: (count: number) => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   unreadCount: 0,
   lastFetchedAt: 0,
-  fetchUnreadCount: async () => {
-    // Skip if fetched less than 10 seconds ago
+  fetchUnreadCount: async (force?: boolean) => {
+    // Skip if fetched less than 5 seconds ago (unless forced)
     const now = Date.now();
-    if (now - get().lastFetchedAt < 10_000) return;
+    if (!force && now - get().lastFetchedAt < 5_000) return;
     set({ lastFetchedAt: now });
 
     const result = await getUnreadCount();

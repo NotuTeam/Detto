@@ -114,6 +114,38 @@ export async function generateAutoEventsForRelationship(
   }
 }
 
+export async function updateAutoEventDateForYear(
+  relationshipId: string,
+  tag: string,
+  newDate: Date
+) {
+  const currentYear = new Date().getFullYear();
+
+  // Find the existing auto-event for this year
+  const existing = await prisma.event.findFirst({
+    where: {
+      relationshipId,
+      description: { contains: tag },
+      date: {
+        gte: new Date(currentYear, 0, 1),
+        lt: new Date(currentYear + 1, 0, 1),
+      },
+      deletedAt: null,
+    },
+  });
+
+  if (existing) {
+    // Update the existing event's date
+    await prisma.event.update({
+      where: { id: existing.id },
+      data: { date: newDate },
+    });
+  } else {
+    // If no event exists for this year, generate it
+    await generateAutoEventsForRelationship(relationshipId, currentYear);
+  }
+}
+
 export async function generateAutoEventsForAllRelationships(year?: number) {
   const currentYear = year ?? new Date().getFullYear();
 

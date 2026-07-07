@@ -27,18 +27,23 @@ export function AppHeader({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    fetchUnreadCount();
+    fetchUnreadCount(true);
 
     intervalRef.current = setInterval(() => {
       fetchUnreadCount();
-    }, 60000);
+    }, 30000);
 
-    const handleFocus = () => fetchUnreadCount();
+    const handleFocus = () => fetchUnreadCount(true);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") fetchUnreadCount(true);
+    };
     window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [fetchUnreadCount]);
 
