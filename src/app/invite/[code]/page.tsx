@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { Heart, AlertTriangle } from "lucide-react";
+import { Heart } from "lucide-react";
 import {
   validateInvitationByCode,
   joinByShortCode,
@@ -12,6 +13,9 @@ import {
 } from "@/features/relationship/actions";
 import { getSession } from "@/features/auth/actions";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
+
+import Connect from "@/assets/illustration/connection.svg";
+import Warning from "@/assets/illustration/warning.svg";
 
 export default function InvitePage({
   params,
@@ -76,7 +80,10 @@ export default function InvitePage({
   // Validating
   if (validating) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-page)" }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--bg-page)" }}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -92,20 +99,53 @@ export default function InvitePage({
   // Already in relation
   if (isInRelation) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative" style={{ background: "var(--bg-page)" }}>
+      <div
+        className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative"
+        style={{ background: "var(--bg-page)" }}
+      >
         <PageBlobs seed={5} />
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-95 text-center relative z-10">
-          {iconCircle(<AlertTriangle size={36} style={{ color: "var(--warning)" }} />, "color-mix(in srgb, var(--warning) 15%, transparent)")}
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.75rem" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-95 text-center relative z-10"
+        >
+          <Image
+            src={Warning}
+            alt="Illustration"
+            width={280}
+            height={280}
+            className="mb-8 w-auto h-70"
+            priority
+          />
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: "0.75rem",
+            }}
+          >
             Already in a relationship
           </h2>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", marginBottom: "2rem" }}>
+          <p
+            style={{
+              fontSize: "0.95rem",
+              color: "var(--text-secondary)",
+              marginBottom: "2rem",
+            }}
+          >
             Close this chapter before starting a new one
           </p>
           <Button fullWidth onClick={() => router.push("/relation")}>
             View Current Relationship
           </Button>
-          <Button variant="ghost" fullWidth onClick={() => router.push("/home")} className="mt-3">
+          <Button
+            variant="ghost"
+            fullWidth
+            onClick={() => router.push("/home")}
+            className="mt-3"
+          >
             Back to Dashboard
           </Button>
         </motion.div>
@@ -116,20 +156,58 @@ export default function InvitePage({
   // Not logged in
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative" style={{ background: "var(--bg-page)" }}>
+      <div
+        className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative"
+        style={{ background: "var(--bg-page)" }}
+      >
         <PageBlobs seed={6} />
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-95 text-center relative z-10">
-          {iconCircle(<Heart size={36} style={{ color: "var(--accent)" }} />, "var(--accent-soft)")}
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
-            {inviterName ? `${inviterName} invited you` : "Relationship Invitation"}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-95 text-center relative z-10"
+        >
+          <Image
+            src={Connect}
+            alt="Illustration"
+            width={280}
+            height={280}
+            className="mb-8 w-auto h-70"
+            priority
+          />
+          <h2
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: "0.5rem",
+            }}
+          >
+            {inviterName
+              ? `${inviterName} invited you`
+              : "Relationship Invitation"}
           </h2>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", marginBottom: "2rem" }}>
+          <p
+            style={{
+              fontSize: "0.95rem",
+              color: "var(--text-secondary)",
+              marginBottom: "2rem",
+            }}
+          >
             One step away from writing this story together
           </p>
-          <Button fullWidth onClick={() => router.push(`/register?invite=${code}`)}>
+          <Button
+            fullWidth
+            onClick={() => router.push(`/register?invite=${code}`)}
+          >
             Create Account & Join
           </Button>
-          <Button variant="ghost" fullWidth onClick={() => router.push(`/login?invite=${code}`)} className="mt-3">
+          <Button
+            variant="ghost"
+            fullWidth
+            onClick={() => router.push(`/login?invite=${code}`)}
+            className="mt-3"
+          >
             Sign In & Join
           </Button>
         </motion.div>
@@ -139,21 +217,52 @@ export default function InvitePage({
 
   // Logged in + not in relation
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative" style={{ background: "var(--bg-page)" }}>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative"
+      style={{ background: "var(--bg-page)" }}
+    >
       <PageBlobs seed={7} />
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-95 text-center relative z-10">
-        {iconCircle(<Heart size={36} style={{ color: "var(--accent)" }} />, "var(--accent-soft)")}
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
-          {inviterName ? `${inviterName} invited you` : "Relationship Invitation"}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-95 text-center relative z-10"
+      >
+        {iconCircle(
+          <Heart size={36} style={{ color: "var(--accent)" }} />,
+          "var(--accent-soft)",
+        )}
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "1.5rem",
+            fontWeight: 700,
+            color: "var(--text-primary)",
+            marginBottom: "0.5rem",
+          }}
+        >
+          {inviterName
+            ? `${inviterName} invited you`
+            : "Relationship Invitation"}
         </h2>
-        <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", marginBottom: "2rem" }}>
+        <p
+          style={{
+            fontSize: "0.95rem",
+            color: "var(--text-secondary)",
+            marginBottom: "2rem",
+          }}
+        >
           Join the relationship and start your journey together
         </p>
         {error && <p className="text-[0.8rem] text-red-500 mb-4">{error}</p>}
         <Button fullWidth loading={loading} onClick={handleJoin}>
           Accept Invitation & Join
         </Button>
-        <Button variant="ghost" fullWidth onClick={() => router.push("/home")} className="mt-3">
+        <Button
+          variant="ghost"
+          fullWidth
+          onClick={() => router.push("/home")}
+          className="mt-3"
+        >
           Skip
         </Button>
       </motion.div>
