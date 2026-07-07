@@ -44,6 +44,7 @@ next-env.d.ts
 
 # build artifacts
 build_output.txt
+build_check*.txt
 lint_output*.txt
 lint_notif.txt
 lint_out.txt
