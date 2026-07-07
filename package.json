@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:local": "cp prisma/schema.sqlite.prisma prisma/schema.prisma && npx prisma generate",
+    "db:prod": "cp prisma/schema.postgres.prisma prisma/schema.prisma && npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:migrate": "npx prisma migrate dev",
+    "db:studio": "npx prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
