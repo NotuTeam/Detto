@@ -11,7 +11,7 @@ interface AvatarProps {
 
 const sizeStyles: Record<string, string> = {
   xs: "w-9 h-9 text-[13px]",
-  sm: "w-[48px] h-[48px] text-base",
+  sm: "w-12 h-12 text-base",
   md: "w-16 h-16 text-xl",
   lg: "w-20 h-20 text-2xl",
   xl: "w-24 h-24 text-3xl",
@@ -21,7 +21,7 @@ export function Avatar({ src, name, size = "md", online, gradient, className }: 
   const initials = getInitials(name);
 
   return (
-    <div className="relative inline-flex flex-shrink-0">
+    <div className="relative inline-flex shrink-0">
       <div
         className={cn(
           "rounded-full flex items-center justify-center overflow-hidden font-bold",

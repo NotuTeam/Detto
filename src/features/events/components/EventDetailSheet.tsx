@@ -189,7 +189,7 @@ export function EventDetailSheet({
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
-                  className="text-[0.68rem] font-extrabold px-2.5 py-1 rounded-full flex-shrink-0"
+                  className="text-[0.68rem] font-extrabold px-2.5 py-1 rounded-full shrink-0"
                   style={{
                     background:
                       status.variant === "accent"
@@ -278,7 +278,7 @@ export function EventDetailSheet({
                 >
                   <MapPin
                     size={14}
-                    className="mt-0.5 flex-shrink-0"
+                    className="mt-0.5 shrink-0"
                     style={{ color: "var(--accent)" }}
                   />
                   <div className="flex-1 min-w-0">
@@ -302,7 +302,7 @@ export function EventDetailSheet({
                   {event.locationUrl && (
                     <Navigation
                       size={14}
-                      className="flex-shrink-0 mt-0.5"
+                      className="shrink-0 mt-0.5"
                       style={{ color: "var(--accent)" }}
                     />
                   )}

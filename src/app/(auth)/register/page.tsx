@@ -216,7 +216,7 @@ function RegisterContent() {
       )}
 
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[380px] mx-auto">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-95 mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -798,7 +798,7 @@ function RegisterContent() {
 
       {/* Bottom action (steps 1-4) */}
       {step >= 1 && step <= 4 && (
-        <div className="w-full max-w-[380px] mx-auto pb-safe">
+        <div className="w-full max-w-95 mx-auto pb-safe">
           {error && (
             <p className="text-[0.8rem] text-red-500 text-center mb-3">
               {error}

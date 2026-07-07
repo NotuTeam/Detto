@@ -60,7 +60,7 @@ function LoginContent() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="flex-1 flex flex-col items-center justify-center w-full max-w-[380px] mx-auto relative z-10"
+        className="flex-1 flex flex-col items-center justify-center w-full max-w-95 mx-auto relative z-10"
       >
         {/* Header */}
         <div className="text-center mb-10">

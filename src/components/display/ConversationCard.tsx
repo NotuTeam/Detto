@@ -24,7 +24,7 @@ export function ConversationCard({ name, subtitle, avatarGradient, badge, online
         <div className="text-[0.8rem] text-[var(--text-secondary)] truncate">{subtitle}</div>
       </div>
       {badge !== undefined && badge > 0 && (
-        <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-[7px] rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] text-[0.7rem] font-extrabold flex-shrink-0">
+        <span className="inline-flex items-center justify-center min-w-5.5 h-5.5 px-[7px] rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] text-[0.7rem] font-extrabold shrink-0">
           {badge}
         </span>
       )}

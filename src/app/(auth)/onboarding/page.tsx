@@ -63,7 +63,7 @@ export default function OnboardingPage() {
       <PageBlobs seed={3} />
 
       {/* Skip button */}
-      <div className="w-full max-w-[380px] flex justify-end relative z-10">
+      <div className="w-full max-w-95 flex justify-end relative z-10">
         <button
           onClick={skip}
           className="text-[0.85rem] font-medium transition-colors cursor-pointer"
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Slide content */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[380px] relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-95 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -109,7 +109,7 @@ export default function OnboardingPage() {
 
             {/* Description */}
             <p
-              className="max-w-[300px]"
+              className="max-w-75"
               style={{
                 fontSize: "0.95rem",
                 lineHeight: 1.6,
@@ -123,7 +123,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Dots + Next */}
-      <div className="w-full max-w-[380px] flex flex-col items-center gap-6 relative z-10">
+      <div className="w-full max-w-95 flex flex-col items-center gap-6 relative z-10">
         {/* Progress dots */}
         <div className="flex gap-2">
           {slides.map((s, i) => (

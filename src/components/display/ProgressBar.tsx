@@ -15,8 +15,8 @@ export function ProgressBar({ value, label, showPercentage = true, className }: 
     <div className={cn("flex flex-col gap-1.5", className)}>
       {(label || showPercentage) && (
         <div className="flex justify-between items-center">
-          {label && <span className="text-[0.75rem] font-semibold text-[var(--text-secondary)] tracking-[0.04em] uppercase">{label}</span>}
-          {showPercentage && <span className="text-[0.75rem] font-bold text-[var(--accent)]">{pct}%</span>}
+          {label && <span className="text-xs font-semibold text-[var(--text-secondary)] tracking-[0.04em] uppercase">{label}</span>}
+          {showPercentage && <span className="text-xs font-bold text-[var(--accent)]">{pct}%</span>}
         </div>
       )}
       <div className="w-full h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">

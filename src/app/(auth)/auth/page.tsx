@@ -12,7 +12,7 @@ export default function AuthPage() {
       style={{ background: "var(--bg-page)" }}
     >
       <PageBlobs seed={4} />
-      <div className="w-full max-w-[380px] flex flex-col items-center text-center relative z-10">
+      <div className="w-full max-w-95 flex flex-col items-center text-center relative z-10">
         {/* Logo */}
         <div className="mb-6">
           <img

@@ -218,7 +218,7 @@ export default function NotificationsPage() {
                       <div className="flex items-start gap-3 p-4">
                         {/* Icon */}
                         <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5"
                           style={{
                             background: isUnread
                               ? `color-mix(in srgb, ${typeColor} 15%, transparent)`
@@ -239,7 +239,7 @@ export default function NotificationsPage() {
                             </p>
                             {isUnread && (
                               <div
-                                className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                                className="w-2 h-2 rounded-full shrink-0 mt-1.5"
                                 style={{ background: "var(--accent)" }}
                               />
                             )}

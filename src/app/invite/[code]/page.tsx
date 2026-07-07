@@ -94,7 +94,7 @@ export default function InvitePage({
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative" style={{ background: "var(--bg-page)" }}>
         <PageBlobs seed={5} />
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[380px] text-center relative z-10">
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-95 text-center relative z-10">
           {iconCircle(<AlertTriangle size={36} style={{ color: "var(--warning)" }} />, "color-mix(in srgb, var(--warning) 15%, transparent)")}
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.75rem" }}>
             Already in a relationship
@@ -118,7 +118,7 @@ export default function InvitePage({
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative" style={{ background: "var(--bg-page)" }}>
         <PageBlobs seed={6} />
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[380px] text-center relative z-10">
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-95 text-center relative z-10">
           {iconCircle(<Heart size={36} style={{ color: "var(--accent)" }} />, "var(--accent-soft)")}
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
             {inviterName ? `${inviterName} invited you` : "Relationship Invitation"}
@@ -141,7 +141,7 @@ export default function InvitePage({
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden relative" style={{ background: "var(--bg-page)" }}>
       <PageBlobs seed={7} />
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[380px] text-center relative z-10">
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-95 text-center relative z-10">
         {iconCircle(<Heart size={36} style={{ color: "var(--accent)" }} />, "var(--accent-soft)")}
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
           {inviterName ? `${inviterName} invited you` : "Relationship Invitation"}

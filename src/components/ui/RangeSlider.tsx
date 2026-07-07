@@ -17,8 +17,8 @@ export function RangeSlider({ label, value, min, max, displayValue, onChange, cl
     <div className={cn("flex flex-col gap-1.5", className)}>
       {(label || displayValue) && (
         <div className="flex justify-between items-center">
-          {label && <span className="text-[0.75rem] font-semibold uppercase tracking-[0.04em] text-[var(--text-secondary)]">{label}</span>}
-          {displayValue && <span className="text-[0.75rem] font-bold text-[var(--accent)]">{displayValue}</span>}
+          {label && <span className="text-xs font-semibold uppercase tracking-[0.04em] text-[var(--text-secondary)]">{label}</span>}
+          {displayValue && <span className="text-xs font-bold text-[var(--accent)]">{displayValue}</span>}
         </div>
       )}
       <input

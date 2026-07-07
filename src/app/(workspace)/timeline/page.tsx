@@ -192,7 +192,7 @@ export default function TimelinePage() {
         <div className="relative">
           {/* Vertical timeline line */}
           <div
-            className="absolute top-0 bottom-0 w-[2px] rounded-full"
+            className="absolute top-0 bottom-0 w-0.5 rounded-full"
             style={{
               left: "11px",
               background: "var(--border-subtle)",
@@ -207,7 +207,7 @@ export default function TimelinePage() {
               {/* Month header */}
               <div className="flex items-center gap-3 mb-4 relative">
                 <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 relative z-10"
+                  className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 relative z-10"
                   style={{ background: "var(--accent)" }}
                 >
                   <Calendar
@@ -256,7 +256,7 @@ export default function TimelinePage() {
                     >
                       {/* Event dot on the line */}
                       <div
-                        className="w-3 h-3 rounded-full flex-shrink-0 mt-5 relative z-10 -ml-[21.5px]"
+                        className="w-3 h-3 rounded-full shrink-0 mt-5 relative z-10 -ml-[21.5px]"
                         style={{
                           background:
                             status.variant === "accent"

@@ -19,7 +19,7 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50">
       <div
-        className="max-w-[320px] mx-auto flex items-center justify-around h-16 px-2 rounded-full mb-2"
+        className="max-w-80 mx-auto flex items-center justify-around h-16 px-2 rounded-full mb-2"
         style={{ background: "var(--surface)" }}
       >
         {navItems.map((item) => {

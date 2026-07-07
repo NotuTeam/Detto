@@ -154,9 +154,9 @@ export default function DungeonPage() {
         <Section index="04" title="Input & Formulir" desc="Text field, search bar, kode OTP, dan textarea dengan status default dan focus.">
           <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-6">
             <div className="flex flex-wrap gap-4">
-              <Input label="Nama lengkap" defaultValue="Michael" className="max-w-[200px]" />
+              <Input label="Nama lengkap" defaultValue="Michael" className="max-w-50" />
               <Select label="Gender" options={[{ value: "male", label: "Laki-laki" }, { value: "female", label: "Perempuan" }, { value: "other", label: "Lainnya" }]} />
-              <Input label="Email" placeholder="nama@email.com" hint="Kami tidak akan membagikan email Anda." className="max-w-[200px]" />
+              <Input label="Email" placeholder="nama@email.com" hint="Kami tidak akan membagikan email Anda." className="max-w-50" />
             </div>
           </div>
         </Section>
@@ -172,7 +172,7 @@ export default function DungeonPage() {
                 ))}
               </div>
             </div>
-            <div className="mt-6 max-w-[280px]">
+            <div className="mt-6 max-w-70">
               <RangeSlider label="Preferred age" value={sliderVal} min={18} max={40} displayValue={`18–${sliderVal}`} onChange={setSliderVal} />
             </div>
             <div className="mt-6">
@@ -213,7 +213,7 @@ export default function DungeonPage() {
         <Section index="08" title="Kartu" desc="List card, stat card, profile card, conversation card, dan premium card.">
           <div className="flex flex-wrap gap-4">
             {/* List Card */}
-            <div className="flex items-center gap-3 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-3 w-full max-w-[300px]">
+            <div className="flex items-center gap-3 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-3 w-full max-w-75">
               <div className="w-[52px] h-[52px] rounded-[var(--radius-sm)] flex-shrink-0" style={{ background: "linear-gradient(135deg, var(--brand-sage), var(--brand-dark))" }} />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-[0.9rem]">Jaket Lapangan</div>
@@ -223,7 +223,7 @@ export default function DungeonPage() {
             </div>
 
             {/* Stat Card */}
-            <div className="bg-[var(--surface-inverse)] text-[var(--text-inverse)] rounded-[var(--radius-lg)] p-5 w-full max-w-[260px]">
+            <div className="bg-[var(--surface-inverse)] text-[var(--text-inverse)] rounded-[var(--radius-lg)] p-5 w-full max-w-65">
               <div className="text-[0.8rem] text-[var(--text-secondary)] mb-2">Total Poin Minggu Ini</div>
               <div className="font-[var(--font-display)] text-[2.1rem] font-bold">73.106</div>
               <div className="text-[0.7rem] text-[var(--warning)] mt-1">▲ 12% dari minggu lalu</div>

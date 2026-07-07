@@ -150,7 +150,7 @@ export function NotesStack({ currentUserId }: NotesStackProps) {
             Leave a note
           </p>
           <p
-            className="text-[0.75rem]"
+            className="text-xs"
             style={{ color: "var(--text-secondary)" }}
           >
             A short message, just for your partner
@@ -359,7 +359,7 @@ function SwipeableCard({
         className="absolute top-1/2 left-4 -translate-y-1/2 pointer-events-none"
       >
         <span
-          className="text-[0.75rem] font-bold uppercase tracking-wider px-2 py-1 rounded-full"
+          className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full"
           style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
         >
           Prev
@@ -370,7 +370,7 @@ function SwipeableCard({
         className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none"
       >
         <span
-          className="text-[0.75rem] font-bold uppercase tracking-wider px-2 py-1 rounded-full"
+          className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full"
           style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
         >
           Next
@@ -478,7 +478,7 @@ function NoteCard({
       {note.imageUrl && (
         <button
           onClick={(e) => { e.stopPropagation(); onImageClick(note); }}
-          className="rounded-[var(--radius-md)] overflow-hidden mb-3 max-h-[200px] w-full cursor-pointer"
+          className="rounded-[var(--radius-md)] overflow-hidden mb-3 max-h-50 w-full cursor-pointer"
         >
           <img
             src={note.imageUrl}

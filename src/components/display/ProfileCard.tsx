@@ -18,10 +18,10 @@ interface ProfileCardProps {
 export function ProfileCard({ name, subtitle, avatarGradient, avatarEmoji, matchPercentage, className, onLike, onPass }: ProfileCardProps) {
   return (
     <div className={cn(
-      "w-[200px] rounded-[var(--radius-lg)] bg-[var(--surface)] overflow-hidden shadow-[var(--shadow-md)] flex-shrink-0 border border-[var(--border-subtle)]",
+      "w-50 rounded-[var(--radius-lg)] bg-[var(--surface)] overflow-hidden shadow-[var(--shadow-md)] shrink-0 border border-[var(--border-subtle)]",
       className
     )}>
-      <div className="relative w-full h-[220px] flex flex-col items-center justify-end pb-4"
+      <div className="relative w-full h-55 flex flex-col items-center justify-end pb-4"
         style={{ background: avatarGradient || "linear-gradient(160deg, var(--accent-strong) 0%, var(--brand-dark) 100%)" }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-[rgba(31,43,39,0.88)] via-transparent to-transparent" />
@@ -31,7 +31,7 @@ export function ProfileCard({ name, subtitle, avatarGradient, avatarEmoji, match
           </div>
         )}
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-[60px] h-[60px] rounded-full flex items-center justify-center text-[26px] mb-2 bg-[var(--accent-soft)]"
+          <div className="w-15 h-15 rounded-full flex items-center justify-center text-[26px] mb-2 bg-[var(--accent-soft)]"
           >
             {avatarEmoji || "🧑"}
           </div>

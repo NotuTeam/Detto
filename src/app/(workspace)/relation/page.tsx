@@ -517,7 +517,7 @@ export default function RelationPage() {
 
           {relationship.name && (
             <span
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[0.75rem] font-semibold px-3 py-0.5 rounded-full"
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-0.5 rounded-full"
               style={{ background: "rgba(0,0,0,0.45)", color: "white" }}
             >
               {relationship.name}
@@ -534,7 +534,7 @@ export default function RelationPage() {
               size="lg"
             />
             <span
-              className="text-[0.75rem] font-semibold"
+              className="text-xs font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
               {myDisplayName}
@@ -550,7 +550,7 @@ export default function RelationPage() {
                   size="lg"
                 />
                 <span
-                  className="text-[0.75rem] font-semibold"
+                  className="text-xs font-semibold"
                   style={{ color: "var(--text-primary)" }}
                 >
                   {partnerDisplayName}
@@ -627,7 +627,7 @@ export default function RelationPage() {
             </div>
             <button
               onClick={handleCopy}
-              className="w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center cursor-pointer transition-colors flex-shrink-0"
+              className="w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center cursor-pointer transition-colors shrink-0"
               style={{
                 background: copied ? "var(--success)" : "var(--accent)",
                 color: "var(--text-on-accent)",

@@ -27,7 +27,7 @@ export function PWAInstallPrompt() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-20 left-4 right-4 z-50 max-w-[400px] mx-auto"
+          className="fixed bottom-20 left-4 right-4 z-50 max-w-100 mx-auto"
         >
           <div
             className="flex items-center gap-3 p-4 rounded-2xl shadow-lg"
@@ -38,7 +38,7 @@ export function PWAInstallPrompt() {
             }}
           >
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
               style={{ background: "var(--accent-soft)" }}
             >
               <img
@@ -63,7 +63,7 @@ export function PWAInstallPrompt() {
                 Add to home screen for the best experience
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={async () => {
                   await install();

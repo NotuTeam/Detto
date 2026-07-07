@@ -1,7 +1,7 @@
 # ========================
 # Stage 1: Dependencies
 # ========================
-FROM node:20-bookworm-slim AS deps
+FROM node:22-bookworm-slim AS deps
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 make g++ ca-certificates \
@@ -26,7 +26,7 @@ RUN npx prisma generate
 # ========================
 # Stage 2: Build
 # ========================
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -43,7 +43,7 @@ RUN npm run build
 # ========================
 # Stage 3: Production
 # ========================
-FROM node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl ca-certificates \

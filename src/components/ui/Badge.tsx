@@ -19,7 +19,7 @@ export function Badge({ label, variant = "accent", className }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center min-w-[22px] h-[22px] px-[7px] rounded-full text-[0.7rem] font-extrabold",
+        "inline-flex items-center justify-center min-w-5.5 h-5.5 px-[7px] rounded-full text-[0.7rem] font-extrabold",
         variantStyles[variant],
         className
       )}

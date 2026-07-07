@@ -1,20 +1,11 @@
 import Image from "next/image";
-import { ReactElement, JSXElementConstructor, ReactPortal } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
   icon?: LucideIcon;
-  illustration?:
-    | string
-    | number
-    | bigint
-    | true
-    | ReactElement<unknown, string | JSXElementConstructor<any>>
-    | Iterable<ReactNode>
-    | ReactPortal;
+  illustration?: string;
   title: string;
   description?: string;
   action?: {
@@ -65,7 +56,7 @@ export function EmptyState({
       </h3>
       {description && (
         <p
-          className="text-[0.8rem] max-w-[280px] mb-6 "
+          className="text-[0.8rem] max-w-70 mb-6 "
           style={{ color: "var(--text-secondary)" }}
         >
           {description}

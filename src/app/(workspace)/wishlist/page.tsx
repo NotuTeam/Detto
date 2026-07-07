@@ -250,7 +250,7 @@ export default function WishlistPage() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setFilter(null)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-[0.75rem] font-semibold cursor-pointer transition-all"
+            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all"
             style={{
               background:
                 filter === null ? "var(--accent)" : "var(--surface-alt)",
@@ -270,7 +270,7 @@ export default function WishlistPage() {
               <button
                 key={cat.value}
                 onClick={() => setFilter(isActive ? null : cat.value)}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-semibold cursor-pointer transition-all"
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all"
                 style={{
                   background: isActive ? "var(--accent)" : "var(--surface-alt)",
                   color: isActive
@@ -488,7 +488,7 @@ export default function WishlistPage() {
               <Button
                 variant="primary"
                 rounded={false}
-                className="!h-[48px] aspect-square !p-0 flex-shrink-0"
+                className="h-12! aspect-square p-0! shrink-0"
                 onClick={handleAddLink}
                 disabled={!newLink.trim()}
               >
@@ -517,7 +517,7 @@ export default function WishlistPage() {
                 {imageUrls.map((url, i) => (
                   <div
                     key={i}
-                    className="relative w-20 h-20 flex-shrink-0 rounded-[var(--radius-md)] overflow-hidden"
+                    className="relative w-20 h-20 shrink-0 rounded-[var(--radius-md)] overflow-hidden"
                   >
                     <img
                       src={url}
@@ -651,7 +651,7 @@ function WishlistCard({
         {/* Check button */}
         <button
           onClick={() => onToggleCheck(item.id)}
-          className="mt-1 cursor-pointer transition-colors flex-shrink-0"
+          className="mt-1 cursor-pointer transition-colors shrink-0"
           title={item.isChecked ? "Mark as not done" : "Mark as done"}
         >
           {item.isChecked ? (
@@ -692,7 +692,7 @@ function WishlistCard({
                   key={i}
                   src={url}
                   alt=""
-                  className="w-14 h-14 rounded-[var(--radius-sm)] object-cover flex-shrink-0"
+                  className="w-14 h-14 rounded-[var(--radius-sm)] object-cover shrink-0"
                 />
               ))}
             </div>
@@ -721,7 +721,7 @@ function WishlistCard({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+        <div className="flex flex-col items-center gap-1 shrink-0">
           <button
             onClick={() => onToggleFavourite(item.id)}
             className="p-1.5 cursor-pointer transition-colors"

@@ -259,7 +259,7 @@ export default function ProfilePage() {
           >
             {profile.displayName}
           </p>
-          <p className="text-[0.75rem]" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
             @{profile.username}
           </p>
         </div>
@@ -322,7 +322,7 @@ export default function ProfilePage() {
         {/* Member since */}
         <div className="flex items-center gap-2 pt-1">
           <CalendarDays size={14} style={{ color: "var(--text-secondary)" }} />
-          <span className="text-[0.75rem]" style={{ color: "var(--text-secondary)" }}>
+          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
             Member since {memberSince}
           </span>
         </div>
@@ -403,7 +403,7 @@ export default function ProfilePage() {
             />
 
             {pwError && (
-              <p className="text-[0.75rem] text-red-500">{pwError}</p>
+              <p className="text-xs text-red-500">{pwError}</p>
             )}
 
             <Button

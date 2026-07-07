@@ -77,7 +77,7 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
             <img
               src={imageUrl}
               alt=""
-              className="w-full max-h-[200px] object-cover"
+              className="w-full max-h-50 object-cover"
             />
             <button
               onClick={() => {
@@ -131,7 +131,7 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
                 <ImageIcon size={20} />
               )}
             </button>
-            <span className="text-[0.75rem]" style={{ color: "var(--text-secondary)" }}>
+            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
               {message.length}/500
             </span>
           </div>

@@ -77,7 +77,7 @@ export function EventCard({ event, index = 0, onClick, className }: EventCardPro
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
       className={cn(
-        "rounded-[var(--radius-lg)] p-[18px] px-5 relative overflow-hidden shadow-[var(--shadow-md)] cursor-pointer active:scale-[0.98] transition-transform",
+        "rounded-[var(--radius-lg)] p-4.5 px-5 relative overflow-hidden shadow-[var(--shadow-md)] cursor-pointer active:scale-[0.98] transition-transform",
         className,
       )}
       style={{ background: "var(--surface-alt)" }}
@@ -86,7 +86,7 @@ export function EventCard({ event, index = 0, onClick, className }: EventCardPro
       <CardDecor seed={parseInt(event.id.slice(-4), 16) || 1} />
 
       {/* Category label */}
-      <div className="text-[0.75rem] font-semibold uppercase tracking-[0.06em] mb-1 relative flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
+      <div className="text-xs font-semibold uppercase tracking-[0.06em] mb-1 relative flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
         <Icon size={12} />
         {categoryLabel}
       </div>

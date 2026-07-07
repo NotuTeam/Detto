@@ -343,7 +343,7 @@ export default function GalleryPage() {
               Select Event
             </label>
             {events.length > 0 ? (
-              <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
+              <div className="flex flex-col gap-2 max-h-50 overflow-y-auto">
                 {events.map((ev) => {
                   const Icon = CATEGORY_ICON[ev.category] || Pin;
                   const isActive = selectedEventId === ev.id;
@@ -360,7 +360,7 @@ export default function GalleryPage() {
                       }}
                     >
                       <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                         style={{
                           background: isActive
                             ? "var(--accent)"

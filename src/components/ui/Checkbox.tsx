@@ -16,7 +16,7 @@ export function Checkbox({ checked = false, onChange, label, className }: Checkb
       <div
         onClick={() => onChange?.(!checked)}
         className={cn(
-          "w-5 h-5 rounded-md border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-150",
+          "w-5 h-5 rounded-md border-[1.5px] flex items-center justify-center shrink-0 transition-all duration-150",
           checked
             ? "bg-[var(--accent)] border-[var(--accent)]"
             : "border-[var(--border-strong)] bg-transparent"

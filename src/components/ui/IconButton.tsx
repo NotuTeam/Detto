@@ -18,7 +18,7 @@ const variantStyles: Record<string, string> = {
 const sizeStyles: Record<string, string> = {
   sm: "w-10 h-10",
   md: "w-[46px] h-[46px]",
-  lg: "w-[52px] h-[52px]",
+  lg: "w-13 h-13",
 };
 
 const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -27,7 +27,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-150 ease-[var(--ease-smooth)] active:scale-95",
+          "rounded-full border-[1.5px] flex items-center justify-center shrink-0 cursor-pointer transition-all duration-150 ease-[var(--ease-smooth)] active:scale-95",
           variantStyles[variant],
           sizeStyles[size],
           className
