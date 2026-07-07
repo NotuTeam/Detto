@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 
 # Build argon2 native bindings
 RUN npm rebuild argon2
