@@ -326,7 +326,15 @@ export async function checkWishlistItemsForPassedEvents() {
         wishlistItemId: { not: null },
         wishlistItem: { isChecked: false },
       },
-      select: { wishlistItemId: true },
+      select: {
+        id: true,
+        title: true,
+        relationshipId: true,
+        wishlistItemId: true,
+        relationship: {
+          select: { partnerAId: true, partnerBId: true },
+        },
+      },
     });
 
     const ids = passedEvents
@@ -338,6 +346,47 @@ export async function checkWishlistItemsForPassedEvents() {
         where: { id: { in: ids } },
         data: { isChecked: true, checkedAt: now },
       });
+    }
+
+    // Create notifications and send push for each checked wishlist item
+    const { sendPushNotification } = await import("@/lib/push");
+
+    let notified = 0;
+    for (const event of passedEvents) {
+      if (!event.wishlistItemId) continue;
+
+      const userIds = [event.relationship.partnerAId];
+      if (event.relationship.partnerBId) {
+        userIds.push(event.relationship.partnerBId);
+      }
+
+      for (const userId of userIds) {
+        await prisma.notification.create({
+          data: {
+            userId,
+            eventId: event.id,
+            type: "EVENT_TODAY",
+            title: `Wishlist item checked off!`,
+            message: `${event.title} has been marked as done`,
+            sentAt: new Date(),
+          },
+        });
+
+        try {
+          await sendPushNotification(userId, {
+            title: "Wishlist item checked off!",
+            body: `${event.title} has been marked as done`,
+            url: "/wishlist",
+          });
+          notified++;
+        } catch (err) {
+          console.error(`[cron] Push failed for wishlist check ${event.id} user ${userId}:`, err);
+        }
+      }
+    }
+
+    if (notified > 0) {
+      console.log(`[cron] Sent ${notified} wishlist completion notifications`);
     }
 
     return { success: true, data: { checked: ids.length } };

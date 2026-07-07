@@ -22,9 +22,19 @@ export async function sendPushNotification(
   payload: { title: string; body: string; url?: string }
 ) {
   ensureVapid();
+  if (!vapidInitialized) {
+    console.warn("[push] VAPID keys not configured -- skipping push notification");
+    return [];
+  }
+
   const subscriptions = await prisma.pushSubscription.findMany({
     where: { userId },
   });
+
+  if (subscriptions.length === 0) {
+    console.warn(`[push] No push subscriptions found for user ${userId}`);
+    return [];
+  }
 
   const results = await Promise.allSettled(
     subscriptions.map((sub) =>
@@ -35,10 +45,11 @@ export async function sendPushNotification(
     )
   );
 
-  // Clean up expired/invalid subscriptions
+  // Log and clean up expired/invalid subscriptions
   results.forEach((result, index) => {
     if (result.status === "rejected") {
       const statusCode = (result.reason as { statusCode?: number })?.statusCode;
+      console.error(`[push] Failed to send to subscription ${subscriptions[index].id}:`, result.reason?.message || result.reason);
       if (statusCode === 404 || statusCode === 410) {
         prisma.pushSubscription.delete({
           where: { id: subscriptions[index].id },

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateExpiredEventStatuses, sendDayOfEventReminders } from "@/lib/auto-status";
+import { updateExpiredEventStatuses, sendDayOfEventReminders, sendTomorrowEventReminders } from "@/lib/auto-status";
 import { generateAutoEventsForAllRelationships } from "@/lib/auto-events";
 import { checkWishlistItemsForPassedEvents } from "@/features/wishlist/actions";
 
@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     await Promise.all([
       updateExpiredEventStatuses(),
       sendDayOfEventReminders(),
+      sendTomorrowEventReminders(),
       checkWishlistItemsForPassedEvents(),
     ]);
 
