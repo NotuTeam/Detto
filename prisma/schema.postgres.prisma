@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// MODELS
+// ============================================================
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  displayName  String
+  passwordHash String
+  birthDate    DateTime
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  partnerARelationships Relationship[] @relation("PartnerA")
+  partnerBRelationships Relationship[] @relation("PartnerB")
+  createdEvents         Event[]        @relation("EventCreator")
+  uploadedMedia         Media[]
+  ratings               Rating[]
+  notifications         Notification[]
+  activityLogs          ActivityLog[]
+  sessions              Session[]
+  pushSubscriptions     PushSubscription[]
+  wishlistItems         WishlistItem[]
+  notes                 Note[]         @relation("NoteCreator")
+}
+
+model Session {
+  id             String    @id @default(uuid())
+  userId         String
+  relationshipId String?
+  token          String    @unique
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relationship Relationship? @relation(fields: [relationshipId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+model Relationship {
+  id               String   @id @default(uuid())
+  name             String?
+  status           String   @default("WAITING_PARTNER")
+  partnerAId       String
+  partnerBId       String?
+  partnerANickname String?
+  partnerBNickname String?
+  bannerUrl        String?
+  startedAt        DateTime
+  engagementDate   DateTime?
+  marriedAt        DateTime?
+  timezone         String   @default("Asia/Jakarta")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  partnerA     User          @relation("PartnerA", fields: [partnerAId], references: [id], onDelete: Cascade)
+  partnerB     User?         @relation("PartnerB", fields: [partnerBId], references: [id], onDelete: SetNull)
+  invitations  Invitation[]
+  events       Event[]
+  activityLogs ActivityLog[]
+  sessions     Session[]
+  wishlistItems WishlistItem[]
+  notes        Note[]
+
+  @@index([partnerAId])
+  @@index([partnerBId])
+}
+
+model Invitation {
+  id             String   @id @default(uuid())
+  relationshipId String
+  token          String   @unique
+  shortCode      String   @unique
+  status         String   @default("PENDING")
+  expiredAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+
+  @@index([relationshipId])
+  @@index([shortCode])
+}
+
+model Event {
+  id              String   @id @default(uuid())
+  relationshipId  String
+  createdBy       String
+  title           String
+  description     String?
+  category        String   @default("DATE")
+  locationName    String?
+  locationUrl     String?
+  date            DateTime
+  status          String   @default("UPCOMING")
+  coverMediaId    String?
+  wishlistItemId  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  relationship  Relationship   @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  creator       User           @relation("EventCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  wishlistItem  WishlistItem?  @relation(fields: [wishlistItemId], references: [id], onDelete: SetNull)
+  media         Media[]
+  ratings       Rating[]
+  notifications Notification[]
+
+  @@index([relationshipId])
+  @@index([date])
+  @@index([status])
+}
+
+model Media {
+  id           String   @id @default(uuid())
+  eventId      String
+  uploadedBy   String
+  publicId     String
+  url          String
+  thumbnailUrl String?
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  caption      String?
+  createdAt    DateTime @default(now())
+
+  event    Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploader User  @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  rating    Int      @default(1)
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  userId      String
+  eventId     String?
+  type        String
+  title       String
+  message     String
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([readAt])
+}
+
+model ActivityLog {
+  id             String   @id @default(uuid())
+  relationshipId String
+  userId         String
+  action         String
+  entity         String
+  entityId       String
+  metadata       String?
+  createdAt      DateTime @default(now())
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([relationshipId])
+  @@index([createdAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model WishlistItem {
+  id             String   @id @default(uuid())
+  relationshipId String
+  createdBy      String
+  title          String
+  content        String?
+  imageUrl       String?
+  linkUrl        String?
+  category       String   @default("GENERAL")
+  isFavourite    Boolean  @default(false)
+  isChecked      Boolean  @default(false)
+  checkedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  creator      User         @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  events       Event[]
+
+  @@index([relationshipId])
+  @@index([isFavourite])
+  @@index([isChecked])
+}
+
+model Note {
+  id             String    @id @default(uuid())
+  relationshipId String
+  createdBy      String
+  message        String?
+  imageUrl       String?
+  imagePublicId  String?
+  isHidden       Boolean   @default(false)
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime?
+
+  relationship Relationship @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  creator      User         @relation("NoteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([relationshipId])
+  @@index([expiresAt])
+  @@index([isHidden])
+}
