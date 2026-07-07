@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,11 +8,9 @@ import {
   ArrowRight,
   ArrowLeft,
   Camera,
-  Heart,
   Share2,
   Copy,
   Loader2,
-  PartyPopper,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -26,7 +25,10 @@ import { uploadAvatarAction } from "@/features/media/actions";
 import { toast } from "sonner";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
-const TOTAL_STEPS = 7;
+import Success from "@/assets/illustration/success.svg";
+import Couple from "@/assets/illustration/couple.svg";
+
+const TOTAL_STEPS = 8;
 
 export default function RegisterPage() {
   return (
@@ -68,6 +70,17 @@ function RegisterContent() {
   );
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  function isOldEnough(dateStr: string): boolean {
+    const birth = new Date(dateStr);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age >= 14;
+  }
+
   function canNext(): boolean {
     switch (step) {
       case 1:
@@ -75,7 +88,7 @@ function RegisterContent() {
       case 2:
         return username.trim().length >= 3 && /^[a-zA-Z0-9_]+$/.test(username);
       case 3:
-        return birthDate.length > 0;
+        return birthDate.length > 0 && isOldEnough(birthDate);
       case 4:
         return password.length >= 8 && password === confirmPassword;
       default:
@@ -99,7 +112,11 @@ function RegisterContent() {
       });
       setLoading(false);
       if (!result.success) {
-        setError(result.error?.message || "Registration failed");
+        const msg = result.error?.message || "Registration failed";
+        setError(msg);
+        if (msg.toLowerCase().includes("username")) {
+          setStep(2);
+        }
         return;
       }
       // Always go to success step (5), regardless of invite code
@@ -176,19 +193,19 @@ function RegisterContent() {
 
   return (
     <div
-      className="min-h-screen flex flex-col px-6 py-8 relative"
+      className="h-screen flex flex-col px-6 py-8 relative overflow-hidden"
       style={{ background: "var(--bg-page)" }}
     >
       {/* Progress bar */}
       <ProgressBar
-        current={step <= 4 ? step : 5}
-        total={5}
+        current={step}
+        total={TOTAL_STEPS}
         className="fixed top-0 left-0 right-0 z-50"
       />
       <PageBlobs seed={2} />
 
       {/* Back button */}
-      {step > 1 && step < 5 && (
+      {((step > 1 && step < 5) || step >= 7) && (
         <button
           onClick={handleBack}
           className="absolute top-6 left-6 transition-colors cursor-pointer"
@@ -231,7 +248,7 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    This name will be visible to your partner
+                    This is what your partner will see
                   </p>
                 </div>
                 <Input
@@ -259,7 +276,7 @@ function RegisterContent() {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    Create username
+                    Create a username
                   </h2>
                   <p
                     style={{
@@ -267,7 +284,7 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    A unique username for your account
+                    One name, only yours
                   </p>
                 </div>
                 <Input
@@ -299,7 +316,7 @@ function RegisterContent() {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    When is your birthday?
+                    When were you born?
                   </h2>
                   <p
                     style={{
@@ -307,7 +324,7 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    Your partner will get a birthday reminder
+                    So your partner never forgets this date
                   </p>
                 </div>
                 <Input
@@ -315,8 +332,17 @@ function RegisterContent() {
                   name="birthDate"
                   type="date"
                   value={birthDate}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 14)).toISOString().split("T")[0]}
                   onChange={(e) => setBirthDate(e.target.value)}
                 />
+                {birthDate && !isOldEnough(birthDate) && (
+                  <p
+                    className="text-[0.8rem]"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    You must be at least 14 years old to register
+                  </p>
+                )}
               </div>
             )}
 
@@ -334,7 +360,7 @@ function RegisterContent() {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    Create password
+                    Create a password
                   </h2>
                   <p
                     style={{
@@ -342,7 +368,7 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    At least 8 characters, make it strong!
+                    At least 8 characters — make it a strong one
                   </p>
                 </div>
                 <PasswordInput
@@ -384,13 +410,15 @@ function RegisterContent() {
                     damping: 20,
                     delay: 0.1,
                   }}
-                  className="w-24 h-24 rounded-full flex items-center justify-center"
-                  style={{
-                    background:
-                      "color-mix(in srgb, var(--success) 20%, transparent)",
-                  }}
                 >
-                  <PartyPopper size={48} style={{ color: "var(--success)" }} />
+                  <Image
+                    src={Success}
+                    alt="Success"
+                    width={280}
+                    height={280}
+                    className="mb-8 w-auto h-auto"
+                    priority
+                  />
                 </motion.div>
                 <div className="text-center">
                   <h2
@@ -402,7 +430,7 @@ function RegisterContent() {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    Account created!
+                    Your account is ready
                   </h2>
                   <p
                     style={{
@@ -411,8 +439,8 @@ function RegisterContent() {
                     }}
                   >
                     {inviteCode
-                      ? "You were invited to join a relationship. Let's set up your profile first."
-                      : "Let's complete your profile before continuing."}
+                      ? "You've been invited to join. Let's set up your profile first."
+                      : "One more step before your story begins."}
                   </p>
                 </div>
                 <Button fullWidth onClick={() => setStep(6)}>
@@ -497,7 +525,9 @@ function RegisterContent() {
                     onClick={async () => {
                       if (inviteCode) {
                         setLoading(true);
-                        const joinResult = await joinRelationship({ shortCode: inviteCode });
+                        const joinResult = await joinRelationship({
+                          shortCode: inviteCode,
+                        });
                         setLoading(false);
                         if (joinResult.success) {
                           toast.success("Successfully joined!");
@@ -505,7 +535,9 @@ function RegisterContent() {
                           return;
                         }
                         // If join fails, still go to home (user registered but didn't join)
-                        toast.error("Could not join relationship automatically");
+                        toast.error(
+                          "Could not join relationship automatically",
+                        );
                         router.push("/home");
                       } else {
                         setStep(7);
@@ -518,8 +550,47 @@ function RegisterContent() {
               </div>
             )}
 
-            {/* Step 7: Relation - Choice */}
-            {step === 7 && relationSub === "choice" && (
+            {/* Step 7: Start a Relationship */}
+            {step === 7 && (
+              <div className="flex flex-col items-center gap-6">
+                <div className="text-left w-full">
+                  <h2
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "1.5rem",
+                      fontWeight: 700,
+                      color: "var(--text-primary)",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Begin a Relationship
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: "0.95rem",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    When did your story start?
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 w-full">
+                  <Input
+                    label="When did you start dating?"
+                    type="date"
+                    value={startedDate}
+                    onChange={(e) => setStartedDate(e.target.value)}
+                    hint="This date will become your anniversary"
+                  />
+                  <Button fullWidth onClick={() => setStep(8)}>
+                    Continue <ArrowRight size={16} />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 8: Relation - Choice */}
+            {step === 8 && relationSub === "choice" && (
               <div className="flex flex-col items-center gap-6">
                 <div className="text-center">
                   <h2
@@ -531,7 +602,7 @@ function RegisterContent() {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    Start a Relationship
+                    Connect with Your Partner
                   </h2>
                   <p
                     style={{
@@ -539,17 +610,10 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    Create a new relationship or join with your partner
+                    Start a new space, or join theirs
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 w-full">
-                  <Input
-                    label="When did you start dating?"
-                    type="date"
-                    value={startedDate}
-                    onChange={(e) => setStartedDate(e.target.value)}
-                    hint="This will be used for your anniversary"
-                  />
                   <Button
                     fullWidth
                     onClick={handleCreateRelation}
@@ -576,8 +640,8 @@ function RegisterContent() {
               </div>
             )}
 
-            {/* Step 7: Relation - Join with code */}
-            {step === 7 && relationSub === "join" && (
+            {/* Step 8: Relation - Join with code */}
+            {step === 8 && relationSub === "join" && (
               <div className="flex flex-col items-center gap-6">
                 <div className="text-center">
                   <h2
@@ -589,7 +653,7 @@ function RegisterContent() {
                       marginBottom: "0.5rem",
                     }}
                   >
-                    Join Relationship
+                    Join a Relationship
                   </h2>
                   <p
                     style={{
@@ -597,7 +661,7 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    Enter the invitation code from your partner
+                    Enter the invitation code your partner sent you
                   </p>
                 </div>
                 <div className="flex flex-col gap-5 w-full">
@@ -641,8 +705,8 @@ function RegisterContent() {
               </div>
             )}
 
-            {/* Step 7: Relation - Show invitation code */}
-            {step === 7 && relationSub === "code" && shortCode && (
+            {/* Step 8: Relation - Show invitation code */}
+            {step === 8 && relationSub === "code" && shortCode && (
               <div className="flex flex-col items-center gap-6 ">
                 <div className="text-center">
                   <motion.div
@@ -654,13 +718,16 @@ function RegisterContent() {
                       damping: 20,
                       delay: 0.1,
                     }}
-                    className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{
-                      background:
-                        "color-mix(in srgb, var(--accent) 20%, transparent)",
-                    }}
+                    className="flex items-center justify-center"
                   >
-                    <Heart size={36} style={{ color: "var(--accent)" }} />
+                    <Image
+                      src={Couple}
+                      alt="Couple"
+                      width={200}
+                      height={100}
+                      className="mb-8 w-auto h-60"
+                      priority
+                    />
                   </motion.div>
                   <h2
                     style={{
@@ -679,7 +746,7 @@ function RegisterContent() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    Send the invitation code or link to your partner
+                    Send this code, and your story officially begins
                   </p>
                 </div>
 

@@ -101,7 +101,7 @@ function LoginContent() {
 
           {inviteCode && (
             <p className="text-[0.8rem] text-center" style={{ color: "var(--accent)" }}>
-              You will join the relationship automatically after login
+              You'll be brought back to your shared space right after signing in
             </p>
           )}
 

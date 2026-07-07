@@ -1,39 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Calendar, Camera, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
+import Moment from "@/assets/illustration/moment.svg";
+import Calender from "@/assets/illustration/calender.svg";
+import Memories from "@/assets/illustration/memories.svg";
+
 const slides = [
   {
-    icon: Heart,
-    title: "Every Moment Has A Story",
+    illustration: Moment,
+    title: "Every Moment, A Story",
     description:
-      "Save every moment of your journey together in a beautiful and personal place.",
-    iconBg: "var(--accent-soft)",
-    iconColor: "var(--accent)",
+      "Keep your journey together in one place that belongs only to the two of you.",
     dotColor: "var(--accent)",
   },
   {
-    icon: Calendar,
+    illustration: Calender,
     title: "A Calendar for Two",
     description:
-      "Plan dates, set reminders, and never miss the moments that matter most.",
-    iconBg: "color-mix(in srgb, var(--warning) 15%, transparent)",
-    iconColor: "var(--warning)",
+      "Plan your dates, and never let a moment that matters slip by.",
     dotColor: "var(--warning)",
   },
   {
-    icon: Camera,
-    title: "Lasting Memories",
+    illustration: Memories,
+    title: "Memories That Stay",
     description:
-      "Upload photos, rate each date, and follow the timeline of your story together.",
-    iconBg: "color-mix(in srgb, var(--success) 15%, transparent)",
-    iconColor: "var(--success)",
+      "Upload photos, log every date, and trace your story back through time.",
     dotColor: "var(--success)",
   },
 ];
@@ -85,13 +84,15 @@ export default function OnboardingPage() {
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="flex flex-col items-center text-center"
           >
-            {/* Icon circle */}
-            <div
-              className="w-24 h-24 rounded-full flex items-center justify-center mb-8"
-              style={{ background: current.iconBg }}
-            >
-              <current.icon size={48} style={{ color: current.iconColor }} />
-            </div>
+            {/* Illustration */}
+            <Image
+              src={current.illustration}
+              alt={current.title}
+              width={280}
+              height={280}
+              className="mb-8 w-auto h-auto"
+              priority
+            />
 
             {/* Title */}
             <h1

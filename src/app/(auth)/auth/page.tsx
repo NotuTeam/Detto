@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Heart } from "lucide-react";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
 export default function AuthPage() {
@@ -15,31 +14,22 @@ export default function AuthPage() {
       <PageBlobs seed={4} />
       <div className="w-full max-w-[380px] flex flex-col items-center text-center relative z-10">
         {/* Logo */}
-        <div
-          className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
-          style={{ background: "var(--accent-soft)" }}
-        >
-          <Heart size={40} style={{ color: "var(--accent)" }} />
+        <div className="mb-6">
+          <img
+            src="/logo/full-primary.png"
+            alt="Detto Logo"
+            width={400}
+            height={80}
+          />
         </div>
-
-        <h1
-          className="font-bold tracking-[-0.03em] mb-2"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "2rem",
-            color: "var(--text-primary)",
-          }}
-        >
-          Detto
-        </h1>
         <p
           style={{
-            fontSize: "0.95rem",
+            fontSize: "1rem",
             color: "var(--text-secondary)",
             marginBottom: "2rem",
           }}
         >
-          Every moment has a story.
+          Moments pass quickly. Let Detto hold onto them.
         </p>
 
         <div className="flex flex-col gap-3 w-full">

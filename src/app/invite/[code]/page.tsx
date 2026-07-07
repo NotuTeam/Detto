@@ -100,7 +100,7 @@ export default function InvitePage({
             Already in a relationship
           </h2>
           <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", marginBottom: "2rem" }}>
-            End your current relationship before starting a new one
+            Close this chapter before starting a new one
           </p>
           <Button fullWidth onClick={() => router.push("/relation")}>
             View Current Relationship
@@ -124,7 +124,7 @@ export default function InvitePage({
             {inviterName ? `${inviterName} invited you` : "Relationship Invitation"}
           </h2>
           <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", marginBottom: "2rem" }}>
-            Join the relationship and start your journey together
+            One step away from writing this story together
           </p>
           <Button fullWidth onClick={() => router.push(`/register?invite=${code}`)}>
             Create Account & Join
