@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import {
   validateInvitationByCode,
   joinByShortCode,
@@ -30,10 +30,12 @@ export default function InvitePage({
   const [code, setCode] = useState("");
   const [isInRelation, setIsInRelation] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [codeValid, setCodeValid] = useState(false);
 
   useEffect(() => {
     params.then(async ({ code }) => {
-      setCode(code.toUpperCase());
+      const upperCode = code.toUpperCase();
+      setCode(upperCode);
       const session = await getSession();
       setIsLoggedIn(!!session);
 
@@ -46,11 +48,13 @@ export default function InvitePage({
         }
       }
 
-      const result = await validateInvitationByCode(code);
+      const result = await validateInvitationByCode(upperCode);
       if (result.success) {
         setInviterName(result.data?.inviterName || null);
+        setCodeValid(true);
       } else {
-        setError(result.error?.message || "Invalid invitation");
+        setError(result.error?.message || "Invalid or expired invitation");
+        setCodeValid(false);
       }
       setValidating(false);
     });
@@ -66,6 +70,18 @@ export default function InvitePage({
     } else {
       setError(result.error?.message || "Failed to join");
     }
+  }
+
+  async function handleCreateAndJoin() {
+    setLoading(true);
+    setError("");
+    router.push(`/register?invite=${code}`);
+  }
+
+  async function handleLoginAndJoin() {
+    setLoading(true);
+    setError("");
+    router.push(`/login?invite=${code}`);
   }
 
   const iconCircle = (icon: React.ReactNode, bg: string) => (
@@ -174,42 +190,74 @@ export default function InvitePage({
             className="mb-8 w-auto h-70"
             priority
           />
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              color: "var(--text-primary)",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {inviterName
-              ? `${inviterName} invited you`
-              : "Relationship Invitation"}
-          </h2>
-          <p
-            style={{
-              fontSize: "0.95rem",
-              color: "var(--text-secondary)",
-              marginBottom: "2rem",
-            }}
-          >
-            One step away from writing this story together
-          </p>
-          <Button
-            fullWidth
-            onClick={() => router.push(`/register?invite=${code}`)}
-          >
-            Create Account & Join
-          </Button>
-          <Button
-            variant="ghost"
-            fullWidth
-            onClick={() => router.push(`/login?invite=${code}`)}
-            className="mt-3"
-          >
-            Sign In & Join
-          </Button>
+          {!codeValid ? (
+            <>
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                Invitation not found
+              </h2>
+              <p
+                style={{
+                  fontSize: "0.95rem",
+                  color: "var(--text-secondary)",
+                  marginBottom: "2rem",
+                }}
+              >
+                {error || "This invitation code is invalid or has expired. Ask your partner for a new one."}
+              </p>
+              <Button fullWidth onClick={() => router.push("/register")}>
+                Create Account
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {inviterName
+                  ? `${inviterName} invited you`
+                  : "Relationship Invitation"}
+              </h2>
+              <p
+                style={{
+                  fontSize: "0.95rem",
+                  color: "var(--text-secondary)",
+                  marginBottom: "2rem",
+                }}
+              >
+                One step away from writing this story together
+              </p>
+              <Button
+                fullWidth
+                loading={loading}
+                onClick={handleCreateAndJoin}
+              >
+                Create Account & Join
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                loading={loading}
+                onClick={handleLoginAndJoin}
+                className="mt-3"
+              >
+                Sign In & Join
+              </Button>
+            </>
+          )}
         </motion.div>
       </div>
     );

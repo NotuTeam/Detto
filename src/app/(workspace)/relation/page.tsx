@@ -28,6 +28,7 @@ import {
   uploadBanner,
   removeBanner,
   createRelationship,
+  ensureInvitation,
 } from "@/features/relationship/actions";
 
 export default function RelationPage() {
@@ -40,6 +41,7 @@ export default function RelationPage() {
     expiredAt: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Banner
   const [uploadingBanner, setUploadingBanner] = useState(false);
@@ -215,6 +217,24 @@ export default function RelationPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       /* noop */
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!invitation) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/invite/${invitation.shortCode}`);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch {
+      /* noop */
+    }
+  };
+
+  const handleEnsureInvitation = async () => {
+    const result = await ensureInvitation();
+    if (result.success && result.data) {
+      setInvitation(result.data);
     }
   };
 
@@ -589,8 +609,8 @@ export default function RelationPage() {
         )}
       </div>
 
-      {/* Invitation code (waiting state) */}
-      {isWaiting && invitation && (
+      {/* Invitation code */}
+      {invitation && (
         <div
           className="rounded-[var(--radius-lg)] p-4 flex flex-col gap-3"
           style={{
@@ -611,7 +631,9 @@ export default function RelationPage() {
             className="text-[0.78rem]"
             style={{ color: "var(--text-secondary)" }}
           >
-            Share this code, and you're officially connected
+            {isWaiting
+              ? "Share this code, and you're officially connected"
+              : "Share this code with someone to invite them"}
           </p>
           <div className="flex items-center gap-2">
             <div
@@ -642,6 +664,49 @@ export default function RelationPage() {
           >
             Expires {formatDate(invitation.expiredAt)}
           </p>
+          <a
+            href={`/invite/${invitation.shortCode}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-[var(--radius-md)] cursor-pointer transition-opacity hover:opacity-80 text-[0.8rem] font-semibold"
+            style={{
+              background: "var(--accent-soft)",
+              color: "var(--accent)",
+            }}
+          >
+            <ExternalLink size={14} />
+            Open Invite Link
+          </a>
+        </div>
+      )}
+
+      {/* Generate invitation (active relationship without pending invite) */}
+      {isActive && !invitation && (
+        <div
+          className="rounded-[var(--radius-lg)] p-4 flex flex-col gap-3"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} style={{ color: "var(--accent)" }} />
+            <span
+              className="text-[0.85rem] font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Share Your Space
+            </span>
+          </div>
+          <p
+            className="text-[0.78rem]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Generate an invitation code to share with your partner
+          </p>
+          <Button fullWidth onClick={handleEnsureInvitation}>
+            Generate Invitation Code
+          </Button>
         </div>
       )}
 
@@ -769,24 +834,6 @@ export default function RelationPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Join link (waiting state) */}
-      {isWaiting && invitation && (
-        <a
-          href={`/invite/${invitation.shortCode}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius-md)] transition-opacity hover:opacity-80"
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border-subtle)",
-            color: "var(--text-primary)",
-          }}
-        >
-          <ExternalLink size={16} style={{ color: "var(--accent)" }} />
-          <span className="text-[0.8rem] font-medium">Open invite link</span>
-        </a>
       )}
 
       {/* Nickname Edit BottomSheet */}

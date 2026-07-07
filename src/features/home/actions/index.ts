@@ -17,7 +17,7 @@ export async function getDashboardData() {
     prisma.event.findFirst({
       where: {
         relationshipId: relationship.id,
-        date: { gte: now },
+        date: { gte: now, lte: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()) },
         deletedAt: null,
         status: "UPCOMING",
       },
@@ -28,11 +28,11 @@ export async function getDashboardData() {
       where: {
         relationshipId: relationship.id,
         deletedAt: null,
-        date: { gte: now },
+        date: { gte: now, lte: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()) },
         status: "UPCOMING",
       },
       orderBy: { date: "asc" },
-      take: 5,
+      take: 3,
       select: { id: true, title: true, date: true, category: true, locationName: true },
     }),
     prisma.media.findMany({

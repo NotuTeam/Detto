@@ -258,6 +258,63 @@ export async function getPendingInvitation() {
   }
 }
 
+export async function ensureInvitation() {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
+
+    // Check for existing valid invitation
+    const existing = await prisma.invitation.findFirst({
+      where: {
+        relationshipId: relationship.id,
+        status: "PENDING",
+        expiredAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { shortCode: true, expiredAt: true },
+    });
+
+    if (existing) {
+      return {
+        success: true,
+        data: {
+          shortCode: existing.shortCode,
+          expiredAt: existing.expiredAt.toISOString(),
+        },
+      };
+    }
+
+    // Create a new invitation
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS);
+    const token = randomUUID();
+    const shortCode = generateShortCode();
+
+    const invitation = await prisma.invitation.create({
+      data: {
+        relationshipId: relationship.id,
+        token,
+        shortCode,
+        expiredAt: expiresAt,
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        shortCode: invitation.shortCode,
+        expiredAt: invitation.expiredAt.toISOString(),
+      },
+    };
+  } catch (err) {
+    console.error("ensureInvitation error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
 export async function uploadBanner(file: File) {
   try {
     const session = await getSession();
