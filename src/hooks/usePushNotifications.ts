@@ -12,16 +12,25 @@ export function usePushNotifications(isAuthenticated: boolean) {
     if (typeof PushManager === "undefined") return;
     initialized.current = true;
 
-    // Only auto-subscribe if permission already granted.
-    // Do NOT auto-request permission — let the install prompt or manual action do that.
-    if (Notification.permission !== "granted") return;
-
-    navigator.serviceWorker.ready.then((reg) => {
-      reg.pushManager.getSubscription().then((sub) => {
-        if (!sub) {
-          subscribePushNotifications();
-        }
+    // If already granted, just make sure we have an active subscription
+    if (Notification.permission === "granted") {
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.pushManager.getSubscription().then((sub) => {
+          if (!sub) {
+            subscribePushNotifications();
+          }
+        });
       });
-    });
+      return;
+    }
+
+    // If not denied, prompt the user after a short delay so it doesn't
+    // feel like the very first thing the app does.
+    if (Notification.permission === "default") {
+      const timer = setTimeout(() => {
+        subscribePushNotifications();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
   }, [isAuthenticated]);
 }

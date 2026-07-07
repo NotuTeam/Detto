@@ -18,6 +18,7 @@ import {
   deleteNotification,
   type NotificationItem,
 } from "@/features/notifications/actions";
+import { useNotificationStore } from "@/stores/notifications";
 
 import Notify from "@/assets/illustration/notify.svg";
 
@@ -86,6 +87,7 @@ function groupByDate(
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const setStoreUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
   useEffect(() => {
     let ignore = false;
@@ -102,11 +104,13 @@ export default function NotificationsPage() {
   const handleMarkRead = async (id: string) => {
     const result = await markAsRead(id);
     if (result.success) {
-      setNotifications((prev) =>
-        prev.map((n) =>
+      setNotifications((prev) => {
+        const next = prev.map((n) =>
           n.id === id ? { ...n, readAt: new Date().toISOString() } : n,
-        ),
-      );
+        );
+        setStoreUnreadCount(next.filter((n) => !n.readAt).length);
+        return next;
+      });
     }
   };
 
@@ -118,13 +122,21 @@ export default function NotificationsPage() {
           n.readAt ? n : { ...n, readAt: new Date().toISOString() },
         ),
       );
+      setStoreUnreadCount(0);
     }
   };
 
   const handleDelete = async (id: string) => {
     const result = await deleteNotification(id);
     if (result.success) {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      setNotifications((prev) => {
+        const deleted = prev.find((n) => n.id === id);
+        const next = prev.filter((n) => n.id !== id);
+        if (deleted && !deleted.readAt) {
+          setStoreUnreadCount(next.filter((n) => !n.readAt).length);
+        }
+        return next;
+      });
     }
   };
 

@@ -219,7 +219,7 @@ function RegisterContent() {
       )}
 
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-95 mx-auto border">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-95 mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
