@@ -50,11 +50,10 @@ export async function sendPushNotification(
     if (result.status === "rejected") {
       const statusCode = (result.reason as { statusCode?: number })?.statusCode;
       console.error(`[push] Failed to send to subscription ${subscriptions[index].id}:`, result.reason?.message || result.reason);
-      if (statusCode === 404 || statusCode === 410) {
-        prisma.pushSubscription.delete({
-          where: { id: subscriptions[index].id },
-        });
-      }
+      // Delete any subscription that fails -- 404/410 = expired, other codes = key mismatch or invalid
+      prisma.pushSubscription.delete({
+        where: { id: subscriptions[index].id },
+      }).catch(() => {});
     }
   });
 

@@ -37,6 +37,7 @@ COPY . .
 # Build-time env (only NEXT_PUBLIC_ vars get embedded into client bundle)
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
 RUN npm run build
 

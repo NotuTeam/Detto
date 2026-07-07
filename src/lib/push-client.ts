@@ -34,6 +34,14 @@ export async function subscribePushNotifications(): Promise<boolean> {
       return false;
     }
 
+    // Unsubscribe existing subscription first (handles VAPID key rotation)
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      const oldEndpoint = existing.endpoint;
+      await existing.unsubscribe();
+      await removePushSubscription(oldEndpoint).catch(() => {});
+    }
+
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as ArrayBuffer,
