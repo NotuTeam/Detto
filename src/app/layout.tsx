@@ -89,8 +89,8 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" className={`${nunito.variable} h-full`}>
       <head>
-        <link rel="icon" href="/logo/main.png" />
-        <link rel="apple-touch-icon" href="/logo/main.png" />
+        <link rel="icon" href="/logo/main.png?v=2" />
+        <link rel="apple-touch-icon" href="/logo/main.png?v=2" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

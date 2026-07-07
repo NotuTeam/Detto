@@ -29,6 +29,8 @@ function getTypeIcon(type: string) {
       return Calendar;
     case "NOTE_RECEIVED":
       return Heart;
+    case "PARTNER_JOINED":
+      return Heart;
     default:
       return Bell;
   }
@@ -41,6 +43,8 @@ function getTypeColor(type: string) {
     case "EVENT_REMINDER":
       return "var(--warning)";
     case "NOTE_RECEIVED":
+      return "var(--accent)";
+    case "PARTNER_JOINED":
       return "var(--accent)";
     default:
       return "var(--text-secondary)";

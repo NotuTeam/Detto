@@ -10,6 +10,7 @@ import { INVITATION_EXPIRY_DAYS } from "@/config/constants";
 import { generateShortCode } from "@/lib/utils";
 import { generateAutoEventsForRelationship, updateAutoEventDateForYear } from "@/lib/auto-events";
 import { revalidatePath } from "next/cache";
+import { sendPushNotification } from "@/lib/push";
 import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
 
 export async function createRelationship(input: CreateRelationshipInput) {
@@ -118,6 +119,29 @@ export async function joinRelationship(input: JoinRelationshipInput) {
 
     // Generate auto events (birthdays + anniversary)
     await generateAutoEventsForRelationship(relationship.id);
+
+    // Notify partnerA that someone joined their relationship
+    const joiner = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { displayName: true },
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: relationship.partnerAId,
+        type: "PARTNER_JOINED",
+        title: "Your partner joined!",
+        message: `${joiner?.displayName || "Your partner"} accepted your invitation`,
+      },
+    });
+
+    sendPushNotification(relationship.partnerAId, {
+      title: "Your partner joined!",
+      body: `${joiner?.displayName || "Your partner"} accepted your invitation`,
+      url: "/relation",
+    }).catch(() => {});
+
+    revalidatePath("/notifications");
 
     return { success: true, data: { relationshipId: relationship.id } };
   } catch (err) {

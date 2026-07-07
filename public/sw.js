@@ -1,4 +1,4 @@
-const CACHE_NAME = "detto-v3";
+const CACHE_NAME = "detto-v4";
 const STATIC_ASSETS = [];
 
 self.addEventListener("install", (event) => {

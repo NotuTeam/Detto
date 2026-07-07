@@ -62,8 +62,8 @@ export async function generateAutoEventsForRelationship(
   const relationship = await prisma.relationship.findUnique({
     where: { id: relationshipId },
     include: {
-      partnerA: { select: { id: true, displayName: true, birthDate: true } },
-      partnerB: { select: { id: true, displayName: true, birthDate: true } },
+      partnerA: { select: { id: true, displayName: true, birthDate: true, birthdayAutoGenerate: true } },
+      partnerB: { select: { id: true, displayName: true, birthDate: true, birthdayAutoGenerate: true } },
     },
   });
 
@@ -71,20 +71,22 @@ export async function generateAutoEventsForRelationship(
 
   const createdBy = relationship.partnerAId;
 
-  // Partner A birthday
-  const birthdayA = extractMonthDay(relationship.partnerA.birthDate);
-  await upsertAutoEvent({
-    relationshipId,
-    year: currentYear,
-    tag: TAG_BIRTHDAY_A,
-    title: `${relationship.partnerA.displayName}'s Birthday`,
-    category: "BIRTHDAY",
-    date: nextOccurrence(birthdayA, currentYear),
-    createdBy,
-  });
+  // Partner A birthday (only if auto-generate is enabled)
+  if (relationship.partnerA.birthdayAutoGenerate !== false) {
+    const birthdayA = extractMonthDay(relationship.partnerA.birthDate);
+    await upsertAutoEvent({
+      relationshipId,
+      year: currentYear,
+      tag: TAG_BIRTHDAY_A,
+      title: `${relationship.partnerA.displayName}'s Birthday`,
+      category: "BIRTHDAY",
+      date: nextOccurrence(birthdayA, currentYear),
+      createdBy,
+    });
+  }
 
-  // Partner B birthday
-  if (relationship.partnerB) {
+  // Partner B birthday (only if auto-generate is enabled)
+  if (relationship.partnerB && relationship.partnerB.birthdayAutoGenerate !== false) {
     const birthdayB = extractMonthDay(relationship.partnerB.birthDate);
     await upsertAutoEvent({
       relationshipId,
