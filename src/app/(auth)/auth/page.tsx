@@ -18,7 +18,7 @@ export default function AuthPage() {
           <img
             src="/logo/full-primary.png"
             alt="Detto Logo"
-            width={400}
+            width={300}
             height={80}
           />
         </div>

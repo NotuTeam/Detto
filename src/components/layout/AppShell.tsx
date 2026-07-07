@@ -7,6 +7,7 @@ import { PageContainer } from "./PageContainer";
 import { useUserStore } from "@/stores/user";
 import { ScrollToTop } from "./ScrollToTop";
 import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
+import { NotificationPrompt } from "@/components/ui/NotificationPrompt";
 
 interface AppShellProps {
   children: ReactNode;
@@ -29,6 +30,7 @@ export function AppShell({ children, hideNav }: AppShellProps) {
       <PageContainer>{children}</PageContainer>
       {!hideNav && <BottomNav />}
       <PWAInstallPrompt />
+      <NotificationPrompt />
     </>
   );
 }

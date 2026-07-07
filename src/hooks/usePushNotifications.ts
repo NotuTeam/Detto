@@ -12,25 +12,17 @@ export function usePushNotifications(isAuthenticated: boolean) {
     if (typeof PushManager === "undefined") return;
     initialized.current = true;
 
-    // If already granted, just make sure we have an active subscription
-    if (Notification.permission === "granted") {
-      navigator.serviceWorker.ready.then((reg) => {
-        reg.pushManager.getSubscription().then((sub) => {
-          if (!sub) {
-            subscribePushNotifications();
-          }
-        });
-      });
-      return;
-    }
+    // Only auto-subscribe if permission already granted.
+    // Do NOT auto-request permission here -- browsers require a user gesture.
+    // The NotificationPrompt component handles the initial permission request.
+    if (Notification.permission !== "granted") return;
 
-    // If not denied, prompt the user after a short delay so it doesn't
-    // feel like the very first thing the app does.
-    if (Notification.permission === "default") {
-      const timer = setTimeout(() => {
-        subscribePushNotifications();
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
+    navigator.serviceWorker.ready.then((reg) => {
+      reg.pushManager.getSubscription().then((sub) => {
+        if (!sub) {
+          subscribePushNotifications();
+        }
+      });
+    });
   }, [isAuthenticated]);
 }
