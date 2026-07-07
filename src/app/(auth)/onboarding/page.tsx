@@ -90,7 +90,7 @@ export default function OnboardingPage() {
               alt={current.title}
               width={280}
               height={280}
-              className="mb-8 w-auto h-auto"
+              className="mb-8 w-auto h-80"
               priority
             />
 
