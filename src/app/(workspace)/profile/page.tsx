@@ -216,7 +216,7 @@ export default function ProfilePage() {
           Profile
         </h1>
         <p className="text-[0.8rem]" style={{ color: "var(--text-secondary)" }}>
-          Manage your personal information
+          Your details, your space
         </p>
       </div>
 

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, BellOff, Calendar, Check, Trash2, CheckCheck, Clock } from "lucide-react";
+import {
+  Bell,
+  Calendar,
+  Heart,
+  Check,
+  Trash2,
+  CheckCheck,
+  Clock,
+} from "lucide-react";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import {
   getNotifications,
@@ -11,11 +19,15 @@ import {
   type NotificationItem,
 } from "@/features/notifications/actions";
 
+import Notify from "@/assets/illustration/notify.svg";
+
 function getTypeIcon(type: string) {
   switch (type) {
     case "EVENT_REMINDER":
     case "EVENT_TODAY":
       return Calendar;
+    case "NOTE_RECEIVED":
+      return Heart;
     default:
       return Bell;
   }
@@ -27,12 +39,16 @@ function getTypeColor(type: string) {
       return "var(--accent)";
     case "EVENT_REMINDER":
       return "var(--warning)";
+    case "NOTE_RECEIVED":
+      return "var(--accent)";
     default:
       return "var(--text-secondary)";
   }
 }
 
-function groupByDate(items: NotificationItem[]): { label: string; items: NotificationItem[] }[] {
+function groupByDate(
+  items: NotificationItem[],
+): { label: string; items: NotificationItem[] }[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const yesterday = new Date(today);
@@ -50,14 +66,21 @@ function groupByDate(items: NotificationItem[]): { label: string; items: Notific
     } else if (d.getTime() === yesterday.getTime()) {
       label = "Yesterday";
     } else {
-      label = d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
+      label = d.toLocaleDateString("en-US", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      });
     }
 
     if (!groups.has(label)) groups.set(label, []);
     groups.get(label)!.push(item);
   }
 
-  return Array.from(groups.entries()).map(([label, items]) => ({ label, items }));
+  return Array.from(groups.entries()).map(([label, items]) => ({
+    label,
+    items,
+  }));
 }
 
 export default function NotificationsPage() {
@@ -71,7 +94,9 @@ export default function NotificationsPage() {
       if (result.success) setNotifications(result.data as NotificationItem[]);
       setLoading(false);
     });
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const handleMarkRead = async (id: string) => {
@@ -79,8 +104,8 @@ export default function NotificationsPage() {
     if (result.success) {
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === id ? { ...n, readAt: new Date().toISOString() } : n
-        )
+          n.id === id ? { ...n, readAt: new Date().toISOString() } : n,
+        ),
       );
     }
   };
@@ -89,7 +114,9 @@ export default function NotificationsPage() {
     const result = await markAllAsRead();
     if (result.success) {
       setNotifications((prev) =>
-        prev.map((n) => (n.readAt ? n : { ...n, readAt: new Date().toISOString() }))
+        prev.map((n) =>
+          n.readAt ? n : { ...n, readAt: new Date().toISOString() },
+        ),
       );
     }
   };
@@ -151,9 +178,9 @@ export default function NotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <EmptyState
-          icon={BellOff}
-          title="No notifications"
-          description="You'll see event reminders and updates here."
+          illustration={Notify}
+          title="Nothing new"
+          description="Reminders and updates will show up here."
         />
       ) : (
         <div className="flex flex-col gap-5">
@@ -180,7 +207,9 @@ export default function NotificationsPage() {
                       key={n.id}
                       className="relative rounded-[var(--radius-lg)] overflow-hidden transition-all"
                       style={{
-                        background: isUnread ? "var(--surface)" : "var(--surface-alt)",
+                        background: isUnread
+                          ? "var(--surface)"
+                          : "var(--surface-alt)",
                         border: isUnread
                           ? "1px solid color-mix(in srgb, var(--accent) 20%, var(--border-subtle))"
                           : "1px solid var(--border-subtle)",
@@ -238,7 +267,8 @@ export default function NotificationsPage() {
                         className="flex items-center justify-end gap-2 px-4 py-2"
                         style={{
                           borderTop: "1px solid var(--border-subtle)",
-                          background: "color-mix(in srgb, var(--surface-alt) 50%, transparent)",
+                          background:
+                            "color-mix(in srgb, var(--surface-alt) 50%, transparent)",
                         }}
                       >
                         {isUnread && (

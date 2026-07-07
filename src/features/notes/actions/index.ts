@@ -6,6 +6,7 @@ import { getCurrentRelationship } from "@/features/relationship/actions";
 import { createNoteSchema, type CreateNoteInput } from "../schemas";
 import { revalidatePath } from "next/cache";
 import { cloudinary } from "@/lib/cloudinary";
+import { sendPushNotification } from "@/lib/push";
 
 const NOTE_TTL_HOURS = 24;
 const NOTES_EVENT_TAG = "[AUTO:NOTES_CONTAINER]";
@@ -94,7 +95,7 @@ export async function createNote(input: CreateNoteInput) {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + NOTE_TTL_HOURS);
 
-    await prisma.note.create({
+    const note = await prisma.note.create({
       data: {
         relationshipId: relationship.id,
         createdBy: session.user.id,
@@ -104,6 +105,36 @@ export async function createNote(input: CreateNoteInput) {
         expiresAt,
       },
     });
+
+    // Notify the partner
+    const partnerId = relationship.partnerAId === session.user.id
+      ? relationship.partnerBId
+      : relationship.partnerAId;
+    if (partnerId) {
+      const senderName = relationship.partnerAId === session.user.id
+        ? relationship.partnerA.displayName
+        : relationship.partnerB?.displayName || "Your partner";
+      const preview = parsed.message
+        ? (parsed.message.length > 50 ? parsed.message.slice(0, 50) + "..." : parsed.message)
+        : "sent you a photo";
+      await prisma.notification.create({
+        data: {
+          userId: partnerId,
+          type: "NOTE_RECEIVED",
+          title: `New note from ${senderName}`,
+          message: preview,
+        },
+      });
+
+      // Send native push notification
+      sendPushNotification(partnerId, {
+        title: `New note from ${senderName}`,
+        body: preview,
+        url: "/home",
+      }).catch(() => {});
+
+      revalidatePath("/notifications");
+    }
 
     // Also save image to gallery (Media table) with note message as caption
     if (parsed.imageUrl && parsed.imagePublicId) {

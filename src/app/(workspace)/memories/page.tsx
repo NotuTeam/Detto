@@ -1,12 +1,38 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Camera, X, ChevronLeft, ChevronRight, Loader2, Trash2, Plus, Calendar, UtensilsCrossed, Coffee, Clapperboard, Plane, ShoppingBag, Heart, Cake, Gift, Users, Pin, type LucideIcon } from "lucide-react";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Trash2,
+  Plus,
+  Calendar,
+  UtensilsCrossed,
+  Coffee,
+  Clapperboard,
+  Plane,
+  ShoppingBag,
+  Heart,
+  Cake,
+  Gift,
+  Users,
+  Pin,
+  type LucideIcon,
+} from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { cn } from "@/lib/utils";
-import { getGalleryPhotos, uploadGalleryPhoto, deleteGalleryPhoto, getRelationshipEvents } from "@/features/gallery/actions";
+import {
+  getGalleryPhotos,
+  uploadGalleryPhoto,
+  deleteGalleryPhoto,
+  getRelationshipEvents,
+} from "@/features/gallery/actions";
+
+import Camera from "@/assets/illustration/camera.svg";
 
 const CATEGORY_ICON: Record<string, LucideIcon> = {
   DATE: Calendar,
@@ -80,18 +106,23 @@ export default function GalleryPage() {
       }
       setLoading(false);
     });
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   // Infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && nextCursor && !loadingMore) {
-        fetchPhotos(nextCursor);
-      }
-    }, { threshold: 0.1 });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && nextCursor && !loadingMore) {
+          fetchPhotos(nextCursor);
+        }
+      },
+      { threshold: 0.1 },
+    );
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [nextCursor, loadingMore, fetchPhotos]);
@@ -133,11 +164,18 @@ export default function GalleryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[1.3rem] font-extrabold" style={{ color: "var(--text-primary)" }}>
+          <h1
+            className="text-[1.3rem] font-extrabold"
+            style={{ color: "var(--text-primary)" }}
+          >
             Memories
           </h1>
-          <p className="text-[0.8rem]" style={{ color: "var(--text-secondary)" }}>
-            {photos.length} photo{photos.length !== 1 ? "s" : ""} from your events
+          <p
+            className="text-[0.8rem]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {photos.length} photo{photos.length !== 1 ? "s" : ""} from your
+            journey
           </p>
         </div>
         <Button size="sm" onClick={handleOpenUpload}>
@@ -147,9 +185,9 @@ export default function GalleryPage() {
 
       {photos.length === 0 ? (
         <EmptyState
-          icon={Camera}
-          title="No memories yet"
-          description="Upload photos from your events to start building your gallery"
+          illustration={Camera}
+          title="The gallery is still empty"
+          description="Upload photos from your dates, and watch it fill up"
           action={{ label: "Upload Photo", onClick: handleOpenUpload }}
         />
       ) : (
@@ -176,7 +214,8 @@ export default function GalleryPage() {
                   <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
                     <div className="flex items-center gap-1">
                       {(() => {
-                        const EvIcon = CATEGORY_ICON[photo.event.category] || Pin;
+                        const EvIcon =
+                          CATEGORY_ICON[photo.event.category] || Pin;
                         return <EvIcon size={10} className="text-white/70" />;
                       })()}
                       <span className="text-[0.6rem] text-white/70 truncate">
@@ -193,7 +232,11 @@ export default function GalleryPage() {
           <div ref={sentinelRef} className="h-1" />
           {loadingMore && (
             <div className="flex justify-center py-4">
-              <Loader2 size={24} className="animate-spin" style={{ color: "var(--accent)" }} />
+              <Loader2
+                size={24}
+                className="animate-spin"
+                style={{ color: "var(--accent)" }}
+              />
             </div>
           )}
         </>
@@ -239,27 +282,39 @@ export default function GalleryPage() {
             <div className="max-w-[430px] mx-auto w-full px-4 pb-6 pointer-events-auto">
               <div className="flex items-center justify-between mb-2">
                 <button
-                  onClick={() => setPreviewIndex((prev) => prev! > 0 ? prev! - 1 : photos.length - 1)}
+                  onClick={() =>
+                    setPreviewIndex((prev) =>
+                      prev! > 0 ? prev! - 1 : photos.length - 1,
+                    )
+                  }
                   className="p-2 text-white/60 hover:text-white cursor-pointer"
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <div className="flex-1 text-center">
                   {currentPhoto.caption && (
-                    <p className="text-white text-[0.9rem] mb-1">{currentPhoto.caption}</p>
+                    <p className="text-white text-[0.9rem] mb-1">
+                      {currentPhoto.caption}
+                    </p>
                   )}
                   <div className="flex items-center justify-center gap-2">
                     {(() => {
-                      const EvIcon = CATEGORY_ICON[currentPhoto.event.category] || Pin;
+                      const EvIcon =
+                        CATEGORY_ICON[currentPhoto.event.category] || Pin;
                       return <EvIcon size={12} className="text-white/50" />;
                     })()}
                     <span className="text-[0.7rem] text-white/50">
-                      {currentPhoto.event.title} · {currentPhoto.uploader.displayName}
+                      {currentPhoto.event.title} ·{" "}
+                      {currentPhoto.uploader.displayName}
                     </span>
                   </div>
                 </div>
                 <button
-                  onClick={() => setPreviewIndex((prev) => prev! < photos.length - 1 ? prev! + 1 : 0)}
+                  onClick={() =>
+                    setPreviewIndex((prev) =>
+                      prev! < photos.length - 1 ? prev! + 1 : 0,
+                    )
+                  }
                   className="p-2 text-white/60 hover:text-white cursor-pointer"
                 >
                   <ChevronRight size={24} />
@@ -271,10 +326,20 @@ export default function GalleryPage() {
       )}
 
       {/* Upload bottom sheet */}
-      <BottomSheet isOpen={uploadOpen} onClose={() => { setUploadOpen(false); setSelectedEventId(""); }} title="Upload Photo">
+      <BottomSheet
+        isOpen={uploadOpen}
+        onClose={() => {
+          setUploadOpen(false);
+          setSelectedEventId("");
+        }}
+        title="Upload Photo"
+      >
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[0.8rem] font-semibold mb-2 block" style={{ color: "var(--text-secondary)" }}>
+            <label
+              className="text-[0.8rem] font-semibold mb-2 block"
+              style={{ color: "var(--text-secondary)" }}
+            >
               Select Event
             </label>
             {events.length > 0 ? (
@@ -288,22 +353,40 @@ export default function GalleryPage() {
                       onClick={() => setSelectedEventId(ev.id)}
                       className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] text-left cursor-pointer transition-all"
                       style={{
-                        background: isActive ? "var(--accent-soft)" : "var(--surface-alt)",
+                        background: isActive
+                          ? "var(--accent-soft)"
+                          : "var(--surface-alt)",
                         border: `1px solid ${isActive ? "var(--accent)" : "var(--border-subtle)"}`,
                       }}
                     >
                       <div
                         className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: isActive ? "var(--accent)" : "var(--surface)", color: isActive ? "var(--text-on-accent)" : "var(--text-secondary)" }}
+                        style={{
+                          background: isActive
+                            ? "var(--accent)"
+                            : "var(--surface)",
+                          color: isActive
+                            ? "var(--text-on-accent)"
+                            : "var(--text-secondary)",
+                        }}
                       >
                         <Icon size={14} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[0.85rem] font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                        <p
+                          className="text-[0.85rem] font-semibold truncate"
+                          style={{ color: "var(--text-primary)" }}
+                        >
                           {ev.title}
                         </p>
-                        <span className="text-[0.7rem]" style={{ color: "var(--text-secondary)" }}>
-                          {new Date(ev.date).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                        <span
+                          className="text-[0.7rem]"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          {new Date(ev.date).toLocaleDateString("en-US", {
+                            day: "numeric",
+                            month: "short",
+                          })}
                         </span>
                       </div>
                     </button>
@@ -311,13 +394,22 @@ export default function GalleryPage() {
                 })}
               </div>
             ) : (
-              <p className="text-[0.85rem]" style={{ color: "var(--text-secondary)" }}>
-                Create an event first to upload photos.
+              <p
+                className="text-[0.85rem]"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Create an event first, so your photos have somewhere to live.
               </p>
             )}
           </div>
 
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleUpload}
+            className="hidden"
+          />
           <Button
             fullWidth
             disabled={!selectedEventId || uploading}

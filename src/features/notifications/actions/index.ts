@@ -120,6 +120,36 @@ export async function markAllAsRead() {
   }
 }
 
+export async function savePushSubscription(subscription: {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    await prisma.pushSubscription.upsert({
+      where: { endpoint: subscription.endpoint },
+      update: {
+        p256dh: subscription.p256dh,
+        auth: subscription.auth,
+      },
+      create: {
+        userId: session.user.id,
+        endpoint: subscription.endpoint,
+        p256dh: subscription.p256dh,
+        auth: subscription.auth,
+      },
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("savePushSubscription error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
 export async function deleteNotification(notificationId: string) {
   try {
     const session = await getSession();

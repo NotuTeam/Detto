@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Bell, Clock, Sun, Moon } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useTheme } from "@/providers";
 import { cn } from "@/lib/utils";
-import { getUnreadCount } from "@/features/notifications/actions";
+import { useNotificationStore } from "@/stores/notifications";
 
 interface AppHeaderProps {
   displayName?: string;
@@ -22,13 +22,25 @@ export function AppHeader({
   className,
 }: AppHeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const fetchUnreadCount = useNotificationStore((s) => s.fetchUnreadCount);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    getUnreadCount().then((result) => {
-      if (result.success) setUnreadCount(result.data);
-    });
-  }, []);
+    fetchUnreadCount();
+
+    intervalRef.current = setInterval(() => {
+      fetchUnreadCount();
+    }, 60000);
+
+    const handleFocus = () => fetchUnreadCount();
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [fetchUnreadCount]);
 
   return (
     <header className={cn("top-0 z-40", className)}>
@@ -49,7 +61,7 @@ export function AppHeader({
               className="text-[0.7rem]"
               style={{ color: "var(--text-secondary)" }}
             >
-              {username ? `@${username}` : "Nokta"}
+              {username ? `@${username}` : "Detto"}
             </span>
           </div>
         </Link>

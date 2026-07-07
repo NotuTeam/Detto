@@ -5,34 +5,18 @@ import { AppHeader } from "./AppHeader";
 import { BottomNav } from "./BottomNav";
 import { PageContainer } from "./PageContainer";
 import { useUserStore } from "@/stores/user";
-import { useRelationshipStore } from "@/stores/relationship";
-import { LoadingState } from "@/components/feedback/LoadingState";
 import { ScrollToTop } from "./ScrollToTop";
+import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
 
 interface AppShellProps {
   children: ReactNode;
   hideNav?: boolean;
-  loading?: boolean;
 }
 
-export function AppShell({ children, hideNav, loading }: AppShellProps) {
-  const isUserLoading = useUserStore((s) => s.isLoading);
-  const isRelLoading = useRelationshipStore((s) => s.isLoading);
+export function AppShell({ children, hideNav }: AppShellProps) {
   const displayName = useUserStore((s) => s.user?.displayName);
   const username = useUserStore((s) => s.user?.username);
   const avatarUrl = useUserStore((s) => s.user?.avatarUrl);
-
-  if (loading || isUserLoading || isRelLoading) {
-    return (
-      <>
-        <AppHeader />
-        <PageContainer>
-          <LoadingState />
-        </PageContainer>
-        {!hideNav && <BottomNav />}
-      </>
-    );
-  }
 
   return (
     <>
@@ -44,6 +28,7 @@ export function AppShell({ children, hideNav, loading }: AppShellProps) {
       />
       <PageContainer>{children}</PageContainer>
       {!hideNav && <BottomNav />}
+      <PWAInstallPrompt />
     </>
   );
 }

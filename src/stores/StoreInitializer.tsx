@@ -6,12 +6,17 @@ import { getCurrentRelationship } from "@/features/relationship/actions";
 import { useUserStore } from "@/stores/user";
 import { useRelationshipStore } from "@/stores/relationship";
 import { useAppStore } from "@/stores/app";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function StoreInitializer() {
   const setUser = useUserStore((s) => s.setUser);
+  const user = useUserStore((s) => s.user);
   const setRelationship = useRelationshipStore((s) => s.setRelationship);
   const setInitialized = useAppStore((s) => s.setInitialized);
   const isInitialized = useAppStore((s) => s.isInitialized);
+
+  // Auto-subscribe to push notifications once user is authenticated
+  usePushNotifications(!!user);
 
   useEffect(() => {
     if (isInitialized) return;

@@ -319,7 +319,7 @@ export function EventDetailSheet({
               className="text-[0.85rem] font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
-              The Memories {media.length > 0 && `(${media.length})`}
+              Memories From This Day {media.length > 0 && `(${media.length})`}
             </span>
             <input
               ref={fileRef}
@@ -467,7 +467,7 @@ export function EventDetailSheet({
                 <Camera size={20} />
               )}
               <span className="text-[0.78rem] font-medium">
-                Add photos from this event
+                No photos yet — add some from this moment
               </span>
             </button>
           )}

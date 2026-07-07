@@ -406,8 +406,7 @@ export default function RelationPage() {
               className="text-[0.8rem] mt-1"
               style={{ color: "var(--text-secondary)" }}
             >
-              Create a new relationship or join with an invitation code from
-              your partner
+              Start a new space, or join with a code from your partner
             </p>
           </div>
           <Button fullWidth onClick={() => setCreateOpen(true)}>
@@ -458,7 +457,7 @@ export default function RelationPage() {
           Relationship
         </h1>
         <p className="text-[0.8rem]" style={{ color: "var(--text-secondary)" }}>
-          {isActive ? "Your love journey" : "Waiting for your partner to join"}
+          {isActive ? "Your journey so far" : "Waiting for your partner to join"}
         </p>
       </div>
 
@@ -612,7 +611,7 @@ export default function RelationPage() {
             className="text-[0.78rem]"
             style={{ color: "var(--text-secondary)" }}
           >
-            Share this code with your partner to join your relationship
+            Share this code, and you're officially connected
           </p>
           <div className="flex items-center gap-2">
             <div
@@ -683,7 +682,7 @@ export default function RelationPage() {
                 className="text-[0.85rem] font-bold uppercase"
                 style={{ color: "var(--accent)" }}
               >
-                Partner Info
+                About Your Partner
               </span>
             </div>
             <button

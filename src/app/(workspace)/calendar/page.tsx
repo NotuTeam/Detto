@@ -1,15 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Calendar } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CalendarGrid } from "@/features/events/components/CalendarGrid";
-import { EventCard, type EventItem } from "@/features/events/components/EventCard";
+import {
+  EventCard,
+  type EventItem,
+} from "@/features/events/components/EventCard";
 import { EventForm } from "@/features/events/components/EventForm";
 import { EventDetailSheet } from "@/features/events/components/EventDetailSheet";
 import { IconButton } from "@/components/ui/IconButton";
 import { Button } from "@/components/ui/Button";
 import { getEventsByMonth, deleteEvent } from "@/features/events/actions";
 import { useUserStore } from "@/stores/user";
+
+import Meetup from "@/assets/illustration/meetup.svg";
 
 export default function EventsPage() {
   const now = new Date();
@@ -44,7 +50,9 @@ export default function EventsPage() {
       if (result.success) setEvents(result.data as EventItem[]);
       setLoading(false);
     });
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, [year, month]);
 
   const handlePrevMonth = () => {
@@ -72,7 +80,7 @@ export default function EventsPage() {
     setInitialDate(
       selectedDay
         ? `${year}-${String(month + 1).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`
-        : undefined
+        : undefined,
     );
     setFormOpen(true);
   }, [selectedDay, year, month]);
@@ -88,12 +96,15 @@ export default function EventsPage() {
     setFormOpen(true);
   }, []);
 
-  const handleDelete = useCallback(async (eventId: string) => {
-    const result = await deleteEvent(eventId);
-    if (result.success) {
-      fetchEvents();
-    }
-  }, [fetchEvents]);
+  const handleDelete = useCallback(
+    async (eventId: string) => {
+      const result = await deleteEvent(eventId);
+      if (result.success) {
+        fetchEvents();
+      }
+    },
+    [fetchEvents],
+  );
 
   const handleSaved = useCallback(() => {
     setEditEvent(null);
@@ -120,7 +131,10 @@ export default function EventsPage() {
 
       {/* Events list header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-[1.1rem] font-bold" style={{ color: "var(--text-primary)" }}>
+        <h2
+          className="text-[1.1rem] font-bold"
+          style={{ color: "var(--text-primary)" }}
+        >
           {selectedDay
             ? new Date(year, month, selectedDay).toLocaleDateString("en-US", {
                 weekday: "long",
@@ -148,17 +162,27 @@ export default function EventsPage() {
         </div>
       ) : (
         <div className="flex flex-col items-center py-8">
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-            style={{ background: "var(--accent-soft)" }}
+          <Image
+            src={Meetup}
+            alt="Meetup"
+            width={100}
+            height={100}
+            className="mb-8 w-auto h-25"
+            priority
+          />
+          <p
+            className="text-[0.95rem] font-bold mb-1"
+            style={{ color: "var(--text-primary)" }}
           >
-            <Calendar size={24} style={{ color: "var(--accent)" }} />
-          </div>
-          <p className="text-[0.95rem] font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-            {selectedDay ? "No events this day" : "No events this month"}
+            {selectedDay
+              ? "Nothing planned for this day"
+              : "Nothing planned this month"}
           </p>
-          <p className="text-[0.8rem] mb-4" style={{ color: "var(--text-secondary)" }}>
-            Plan something special together
+          <p
+            className="text-[0.8rem] mb-4"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Plan something for the two of you
           </p>
           <Button size="sm" onClick={handleCreateNew}>
             Create Event
@@ -169,7 +193,10 @@ export default function EventsPage() {
       {/* Event Form */}
       <EventForm
         isOpen={formOpen}
-        onClose={() => { setFormOpen(false); setEditEvent(null); }}
+        onClose={() => {
+          setFormOpen(false);
+          setEditEvent(null);
+        }}
         onSaved={handleSaved}
         editEvent={editEvent}
         initialDate={initialDate}

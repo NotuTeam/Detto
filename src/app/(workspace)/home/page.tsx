@@ -1,26 +1,41 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  Calendar,
-  Heart,
-  ArrowRight,
-  Image as ImageIcon,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { MiniGallery } from "@/features/media/components/MiniGallery";
 import { NotesStack } from "@/features/notes/components/NotesStack";
-import { EventCard, type EventItem } from "@/features/events/components/EventCard";
+import {
+  EventCard,
+  type EventItem,
+} from "@/features/events/components/EventCard";
 import { getDashboardData } from "@/features/home/actions";
 import { useUserStore } from "@/stores/user";
 
+import Polaroid from "@/assets/illustration/polaroid.svg";
+import Meetup from "@/assets/illustration/meetup.svg";
+import Couple from "@/assets/illustration/couple.svg";
+
 interface DashboardData {
   relationship: Record<string, unknown> | null;
-  nextEvent: { id: string; title: string; category: string; date: string; locationName: string | null } | null;
-  upcomingEvents: { id: string; title: string; category: string; date: string; locationName: string | null }[];
+  nextEvent: {
+    id: string;
+    title: string;
+    category: string;
+    date: string;
+    locationName: string | null;
+  } | null;
+  upcomingEvents: {
+    id: string;
+    title: string;
+    category: string;
+    date: string;
+    locationName: string | null;
+  }[];
   recentPhotos: { id: string; url: string; caption: string | null }[];
   stats: { totalEvents: number; totalPhotos: number; avgRating: string };
 }
@@ -32,7 +47,8 @@ export default function HomePage() {
 
   useEffect(() => {
     getDashboardData().then((result) => {
-      if (result.success && result.data) setData(result.data as unknown as DashboardData);
+      if (result.success && result.data)
+        setData(result.data as unknown as DashboardData);
       setLoading(false);
     });
   }, []);
@@ -42,9 +58,9 @@ export default function HomePage() {
   if (!data?.relationship) {
     return (
       <EmptyState
-        icon={Heart}
-        title="No relationship yet"
-        description="Create a new relationship or join with an invitation from your partner"
+        illustration={Couple}
+        title="No story here yet"
+        description="Start a new space, or join your partner's with an invitation"
         action={{ label: "Start Relationship", href: "/relation/setup" }}
       />
     );
@@ -86,9 +102,9 @@ export default function HomePage() {
         ) : (
           <Card variant="elevated" padding="lg">
             <EmptyState
-              icon={Calendar}
-              title="No events yet"
-              description="Let's plan your first date!"
+              illustration={Meetup}
+              title="Nothing planned yet"
+              description="Time to plan your first date"
               className="py-4"
               action={{ label: "Create Event" }}
             />
@@ -104,12 +120,14 @@ export default function HomePage() {
           className="rounded-[var(--radius-lg)] p-8 flex flex-col items-center text-center"
           style={{ background: "var(--surface)" }}
         >
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-            style={{ background: "var(--accent-soft)" }}
-          >
-            <ImageIcon size={28} style={{ color: "var(--accent)" }} />
-          </div>
+          <Image
+            src={Polaroid}
+            alt="Polaroid"
+            width={100}
+            height={100}
+            className="mb-8 w-auto h-25 rotate-10"
+            priority
+          />
           <h3
             className="text-[1.1rem] font-bold mb-1"
             style={{ color: "var(--text-primary)" }}
@@ -120,7 +138,7 @@ export default function HomePage() {
             className="text-[0.85rem] mb-5"
             style={{ color: "var(--text-secondary)" }}
           >
-            Capture and share moments from your dates
+            Photos from your dates, kept in one place
           </p>
           <Link href="/memories">
             <Button size="sm">Go to Gallery</Button>

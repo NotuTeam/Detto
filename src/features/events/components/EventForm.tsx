@@ -168,7 +168,7 @@ export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: 
           value={locationUrl}
           onChange={(e) => setLocationUrl(e.target.value)}
           placeholder="https://maps.google.com/..."
-          hint="Paste a Google Maps link for quick navigation"
+          hint="Paste a Google Maps link so it's easy to find later"
         />
 
         <div>

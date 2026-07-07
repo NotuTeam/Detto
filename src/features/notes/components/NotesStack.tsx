@@ -153,7 +153,7 @@ export function NotesStack({ currentUserId }: NotesStackProps) {
             className="text-[0.75rem]"
             style={{ color: "var(--text-secondary)" }}
           >
-            A sweet message for your partner
+            A short message, just for your partner
           </p>
         </div>
       </div>

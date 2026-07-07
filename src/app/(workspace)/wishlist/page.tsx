@@ -37,6 +37,8 @@ import {
   createEventFromWishlist,
 } from "@/features/wishlist/actions";
 
+import Love from "@/assets/illustration/love.svg";
+
 const CATEGORIES = [
   { value: "DATE", label: "Date", icon: Calendar },
   { value: "RESTAURANT", label: "Restaurant", icon: UtensilsCrossed },
@@ -95,7 +97,9 @@ export default function WishlistPage() {
       if (result.success) setItems(result.data as WishlistItem[]);
       setLoading(false);
     });
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const reset = () => {
@@ -179,7 +183,13 @@ export default function WishlistPage() {
       setItems((prev) =>
         prev.map((i) =>
           i.id === id
-            ? { ...i, isChecked: result.data!.isChecked, checkedAt: result.data!.isChecked ? new Date().toISOString() : null }
+            ? {
+                ...i,
+                isChecked: result.data!.isChecked,
+                checkedAt: result.data!.isChecked
+                  ? new Date().toISOString()
+                  : null,
+              }
             : i,
         ),
       );
@@ -187,7 +197,9 @@ export default function WishlistPage() {
   };
 
   // Create Event from wishlist
-  const [eventFromWishlist, setEventFromWishlist] = useState<string | null>(null);
+  const [eventFromWishlist, setEventFromWishlist] = useState<string | null>(
+    null,
+  );
   const [eventDate, setEventDate] = useState("");
   const [creatingEvent, setCreatingEvent] = useState(false);
 
@@ -225,7 +237,7 @@ export default function WishlistPage() {
             className="text-[0.8rem]"
             style={{ color: "var(--text-secondary)" }}
           >
-            {items.length} item{items.length !== 1 ? "s" : ""} you both want
+            {items.length} thing{items.length !== 1 ? "s" : ""} you both want
           </p>
         </div>
         <Button size="sm" onClick={() => setFormOpen(true)}>
@@ -277,9 +289,9 @@ export default function WishlistPage() {
 
       {items.length === 0 ? (
         <EmptyState
-          icon={Star}
-          title="Your wishlist is empty"
-          description="Add things you both want to do, buy, or experience together"
+          illustration={Love}
+          title="The list is still empty"
+          description="Write down what you want to do, buy, or experience together"
           action={{ label: "Add Item", onClick: () => setFormOpen(true) }}
         />
       ) : (
@@ -301,7 +313,10 @@ export default function WishlistPage() {
                     onDelete={handleDelete}
                     onToggleFavourite={handleToggleFavourite}
                     onToggleCheck={handleToggleCheck}
-                    onCreateEvent={(id) => { setEventFromWishlist(id); setEventDate(""); }}
+                    onCreateEvent={(id) => {
+                      setEventFromWishlist(id);
+                      setEventDate("");
+                    }}
                   />
                 ))}
               </div>
@@ -327,7 +342,10 @@ export default function WishlistPage() {
                     onDelete={handleDelete}
                     onToggleFavourite={handleToggleFavourite}
                     onToggleCheck={handleToggleCheck}
-                    onCreateEvent={(id) => { setEventFromWishlist(id); setEventDate(""); }}
+                    onCreateEvent={(id) => {
+                      setEventFromWishlist(id);
+                      setEventDate("");
+                    }}
                   />
                 ))}
               </div>
@@ -351,7 +369,10 @@ export default function WishlistPage() {
                     onDelete={handleDelete}
                     onToggleFavourite={handleToggleFavourite}
                     onToggleCheck={handleToggleCheck}
-                    onCreateEvent={(id) => { setEventFromWishlist(id); setEventDate(""); }}
+                    onCreateEvent={(id) => {
+                      setEventFromWishlist(id);
+                      setEventDate("");
+                    }}
                   />
                 ))}
               </div>
@@ -568,12 +589,19 @@ export default function WishlistPage() {
       {/* Create Event from Wishlist BottomSheet */}
       <BottomSheet
         isOpen={!!eventFromWishlist}
-        onClose={() => { setEventFromWishlist(null); setEventDate(""); }}
+        onClose={() => {
+          setEventFromWishlist(null);
+          setEventDate("");
+        }}
         title="Create Event from Wishlist"
       >
         <div className="flex flex-col gap-4">
-          <p className="text-[0.85rem]" style={{ color: "var(--text-secondary)" }}>
-            Pick a date to create an event from this wishlist item. When the event passes, the wishlist item will be automatically checked off.
+          <p
+            className="text-[0.85rem]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Pick a date, and this wish becomes a plan. Once the day passes, it
+            checks itself off — one more wish, made real.
           </p>
           <Input
             label="Event Date"
@@ -627,7 +655,11 @@ function WishlistCard({
           title={item.isChecked ? "Mark as not done" : "Mark as done"}
         >
           {item.isChecked ? (
-            <CheckCircle2 size={20} style={{ color: "var(--success)" }} fill="var(--success)" />
+            <CheckCircle2
+              size={20}
+              style={{ color: "var(--success)" }}
+              fill="var(--success)"
+            />
           ) : (
             <Circle size={20} style={{ color: "var(--text-secondary)" }} />
           )}
@@ -728,15 +760,27 @@ function WishlistCard({
       </div>
       {item.linkedEvent && (
         <div className="mt-2 ml-8">
-          <span className="inline-flex items-center gap-1 text-[0.65rem] font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
-            <Calendar size={10} /> Event on {new Date(item.linkedEvent.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          <span
+            className="inline-flex items-center gap-1 text-[0.65rem] font-medium px-2 py-0.5 rounded-full"
+            style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+          >
+            <Calendar size={10} /> Event on{" "}
+            {new Date(item.linkedEvent.date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
           </span>
         </div>
       )}
       {item.isChecked && item.checkedAt && (
         <div className="mt-2 ml-8">
           <span className="text-[0.65rem]" style={{ color: "var(--success)" }}>
-            Done {new Date(item.checkedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            Done{" "}
+            {new Date(item.checkedAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
           </span>
         </div>
       )}

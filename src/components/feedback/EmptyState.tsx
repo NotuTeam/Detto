@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { ReactElement, JSXElementConstructor, ReactPortal } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import type { ReactNode } from "react";
@@ -5,7 +7,14 @@ import type { LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
   icon?: LucideIcon;
-  illustration?: ReactNode;
+  illustration?:
+    | string
+    | number
+    | bigint
+    | true
+    | ReactElement<unknown, string | JSXElementConstructor<any>>
+    | Iterable<ReactNode>
+    | ReactPortal;
   title: string;
   description?: string;
   action?: {
@@ -31,15 +40,23 @@ export function EmptyState({
         className,
       )}
     >
-      {illustration ||
-        (Icon && (
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-            style={{ background: "var(--accent-soft)" }}
-          >
-            <Icon size={28} style={{ color: "var(--accent)" }} />
-          </div>
-        ))}
+      {illustration && (
+        <Image
+          src={illustration}
+          alt="Meet"
+          width={100}
+          height={100}
+          className="mb-8 w-auto h-25 rotate-10"
+        />
+      )}
+      {Icon && (
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+          style={{ background: "var(--accent-soft)" }}
+        >
+          <Icon size={28} style={{ color: "var(--accent)" }} />
+        </div>
+      )}
       <h3
         className="text-[1.15rem] font-bold mb-1"
         style={{ color: "var(--text-primary)" }}

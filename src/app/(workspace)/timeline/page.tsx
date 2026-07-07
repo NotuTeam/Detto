@@ -1,13 +1,34 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Calendar, Camera, Pin, MapPin, Heart, Cake, Gift, Users, UtensilsCrossed, Coffee, Clapperboard, Plane, ShoppingBag, type LucideIcon } from "lucide-react";
+import {
+  Calendar,
+  Camera,
+  Pin,
+  MapPin,
+  Heart,
+  Cake,
+  Gift,
+  Users,
+  UtensilsCrossed,
+  Coffee,
+  Clapperboard,
+  Plane,
+  ShoppingBag,
+  type LucideIcon,
+} from "lucide-react";
 import { EventDetailSheet } from "@/features/events/components/EventDetailSheet";
-import { getTimelineEvents, type TimelineMonth, type TimelineEvent } from "@/features/timeline/actions";
+import {
+  getTimelineEvents,
+  type TimelineMonth,
+  type TimelineEvent,
+} from "@/features/timeline/actions";
 import { deleteEvent } from "@/features/events/actions";
 import type { EventItem } from "@/features/events/components/EventCard";
 import { useUserStore } from "@/stores/user";
 import { EmptyState } from "@/components/feedback/EmptyState";
+
+import Couple from "@/assets/illustration/couple.svg";
 
 const CATEGORY_ICON: Record<string, LucideIcon> = {
   DATE: Calendar,
@@ -23,13 +44,17 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   OTHER: Pin,
 };
 
-function getComputedStatus(dateStr: string): { label: string; variant: "accent" | "success" | "default" } {
+function getComputedStatus(dateStr: string): {
+  label: string;
+  variant: "accent" | "success" | "default";
+} {
   const eventDate = new Date(dateStr);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   eventDate.setHours(0, 0, 0, 0);
   if (eventDate < today) return { label: "Past", variant: "default" };
-  if (eventDate.getTime() === today.getTime()) return { label: "Today", variant: "accent" };
+  if (eventDate.getTime() === today.getTime())
+    return { label: "Today", variant: "accent" };
   return { label: "Upcoming", variant: "success" };
 }
 
@@ -38,13 +63,19 @@ function getRelativeDate(dateStr: string): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   eventDate.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(
+    (eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Tomorrow";
   if (diffDays === -1) return "Yesterday";
   if (diffDays > 1 && diffDays <= 7) return `In ${diffDays} days`;
   if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)} days ago`;
-  return eventDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+  return eventDate.toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
 }
 
 // Convert TimelineEvent to the shape EventDetailSheet/EventCard expects
@@ -86,7 +117,9 @@ export default function TimelinePage() {
       if (result.success) setMonths(result.data as TimelineMonth[]);
       setLoading(false);
     });
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const handleEventClick = useCallback((ev: TimelineEvent) => {
@@ -94,10 +127,13 @@ export default function TimelinePage() {
     setDetailOpen(true);
   }, []);
 
-  const handleDelete = useCallback(async (eventId: string) => {
-    await deleteEvent(eventId);
-    fetchData();
-  }, [fetchData]);
+  const handleDelete = useCallback(
+    async (eventId: string) => {
+      await deleteEvent(eventId);
+      fetchData();
+    },
+    [fetchData],
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleEdit = useCallback((_event: EventItem) => {
@@ -121,7 +157,9 @@ export default function TimelinePage() {
           className="text-[0.85rem]"
           style={{ color: "var(--text-secondary)" }}
         >
-          {totalEvents > 0 ? `${totalEvents} memories together` : "Your story together"}
+          {totalEvents > 0
+            ? `${totalEvents} memories written together`
+            : "Your story, from the start"}
         </p>
       </div>
 
@@ -145,9 +183,9 @@ export default function TimelinePage() {
         </div>
       ) : totalEvents === 0 ? (
         <EmptyState
-          icon={Calendar}
-          title="No events yet"
-          description="Your timeline will appear here once you start creating memories together."
+          illustration={Couple}
+          title="No trail yet"
+          description="Your timeline will fill in once you start making memories together."
           action={{ label: "Create Event", href: "/calendar" }}
         />
       ) : (
@@ -162,14 +200,20 @@ export default function TimelinePage() {
           />
 
           {months.map((month) => (
-            <div key={`${month.year}-${month.month}`} className="mb-8 last:mb-0">
+            <div
+              key={`${month.year}-${month.month}`}
+              className="mb-8 last:mb-0"
+            >
               {/* Month header */}
               <div className="flex items-center gap-3 mb-4 relative">
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 relative z-10"
                   style={{ background: "var(--accent)" }}
                 >
-                  <Calendar size={12} style={{ color: "var(--text-on-accent)" }} />
+                  <Calendar
+                    size={12}
+                    style={{ color: "var(--text-on-accent)" }}
+                  />
                 </div>
                 <h2
                   className="text-[1rem] font-extrabold"
@@ -194,12 +238,15 @@ export default function TimelinePage() {
                   const Icon = CATEGORY_ICON[ev.category] || Pin;
                   const status = getComputedStatus(ev.date);
                   const relativeDate = getRelativeDate(ev.date);
-                  const fullDate = new Date(ev.date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  });
+                  const fullDate = new Date(ev.date).toLocaleDateString(
+                    "en-US",
+                    {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    },
+                  );
 
                   return (
                     <div
@@ -263,14 +310,15 @@ export default function TimelinePage() {
                         </h3>
 
                         {/* Description preview */}
-                        {ev.description && !ev.description.startsWith("[AUTO:") && (
-                          <p
-                            className="text-[0.8rem] line-clamp-2 mb-2 leading-relaxed"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            {ev.description}
-                          </p>
-                        )}
+                        {ev.description &&
+                          !ev.description.startsWith("[AUTO:") && (
+                            <p
+                              className="text-[0.8rem] line-clamp-2 mb-2 leading-relaxed"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {ev.description}
+                            </p>
+                          )}
 
                         {/* Meta row: date, location, media */}
                         <div
