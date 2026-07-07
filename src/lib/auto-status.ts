@@ -55,15 +55,15 @@ export async function sendDayOfEventReminders() {
 
       if (!existing) {
         const body = event.locationName
-          ? `${event.title} at ${event.locationName}`
-          : `${event.title} is happening today!`;
+          ? `Let's ${event.title} at ${event.locationName} yuhuuu`
+          : `Finally, ${event.title} is happening today!`;
 
         await prisma.notification.create({
           data: {
             userId,
             eventId: event.id,
             type: "EVENT_TODAY",
-            title: `Today: ${event.title}`,
+            title: `Today is ${event.title} Day !`,
             message: body,
             sentAt: new Date(),
           },
@@ -71,7 +71,7 @@ export async function sendDayOfEventReminders() {
 
         try {
           await sendPushNotification(userId, {
-            title: `Today: ${event.title}`,
+            title: `Today is ${event.title} Day !`,
             body,
             url: "/calendar",
           });
