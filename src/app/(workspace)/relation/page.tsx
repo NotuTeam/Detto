@@ -680,8 +680,8 @@ export default function RelationPage() {
         </div>
       )}
 
-      {/* Generate invitation (active relationship without pending invite) */}
-      {isActive && !invitation && (
+      {/* Generate invitation (active relationship without pending invite, and missing partner) */}
+      {isActive && !invitation && !partner && (
         <div
           className="rounded-[var(--radius-lg)] p-4 flex flex-col gap-3"
           style={{
