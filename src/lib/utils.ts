@@ -48,3 +48,9 @@ export function generateShortCode(length = 5): string {
   }
   return result;
 }
+
+export function validateFileSize(file: File, maxSizeMB = 1): void {
+  if (file.size > maxSizeMB * 1024 * 1024) {
+    throw new Error(`File size exceeds ${maxSizeMB}MB limit`);
+  }
+}

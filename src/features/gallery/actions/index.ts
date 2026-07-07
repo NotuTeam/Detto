@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
+import { validateFileSize } from "@/lib/utils";
 import { cloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 
@@ -84,6 +85,7 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
 
 export async function uploadGalleryPhoto(eventId: string, file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 

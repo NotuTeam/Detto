@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
+import { validateFileSize } from "@/lib/utils";
 import { createEventSchema, updateEventSchema, type CreateEventInput, type UpdateEventInput } from "../schemas";
 import { cloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
@@ -227,6 +228,7 @@ export async function getEventMedia(eventId: string) {
 
 export async function uploadEventMedia(eventId: string, file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 

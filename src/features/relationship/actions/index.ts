@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { INVITATION_EXPIRY_DAYS } from "@/config/constants";
-import { generateShortCode } from "@/lib/utils";
+import { generateShortCode, validateFileSize } from "@/lib/utils";
 import { generateAutoEventsForRelationship, updateAutoEventDateForYear } from "@/lib/auto-events";
 import { revalidatePath } from "next/cache";
 import { sendPushNotification } from "@/lib/push";
@@ -341,6 +341,7 @@ export async function ensureInvitation() {
 
 export async function uploadBanner(file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 

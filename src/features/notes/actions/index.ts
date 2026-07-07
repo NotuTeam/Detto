@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
+import { validateFileSize } from "@/lib/utils";
 import { createNoteSchema, type CreateNoteInput } from "../schemas";
 import { revalidatePath } from "next/cache";
 import { cloudinary } from "@/lib/cloudinary";
@@ -210,6 +211,7 @@ export async function deleteNote(noteId: string) {
 
 export async function uploadNoteImage(file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 

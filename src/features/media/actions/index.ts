@@ -3,10 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { cloudinary } from "@/lib/cloudinary";
+import { validateFileSize } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 
 export async function uploadAvatarAction(file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session?.user) return { success: false, error: { code: "UNAUTHORIZED" } };
 
@@ -36,6 +38,7 @@ export async function uploadAvatarAction(file: File) {
 
 export async function uploadFileToCloudinary(file: File, folder: string) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session?.user) return { success: false, error: { code: "UNAUTHORIZED" } };
 

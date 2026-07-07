@@ -7,6 +7,7 @@ import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
 import { hash, verify } from "argon2";
 import { revalidatePath } from "next/cache";
 import { updateAutoEventDateForYear } from "@/lib/auto-events";
+import { validateFileSize } from "@/lib/utils";
 
 export async function getProfile() {
   try {
@@ -96,6 +97,7 @@ export async function updateProfile(input: UpdateProfileInput) {
 
 export async function uploadAvatar(file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 

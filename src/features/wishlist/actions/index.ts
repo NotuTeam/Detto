@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
+import { validateFileSize } from "@/lib/utils";
 import { createWishlistSchema, updateWishlistSchema, type CreateWishlistInput, type UpdateWishlistInput } from "../schemas";
 import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
@@ -210,6 +211,7 @@ export async function toggleFavourite(itemId: string) {
 
 export async function uploadWishlistImage(file: File) {
   try {
+    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
