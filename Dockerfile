@@ -76,4 +76,4 @@ ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV="production"
 ENV HOME=/app
 
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma && node server.js"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy --schema=./prisma/schema.prisma && node server.js"]
