@@ -552,6 +552,7 @@ export default function RelationPage() {
               src={user?.avatarUrl || me?.avatarUrl}
               name={myDisplayName}
               size="lg"
+              previewable
             />
             <span
               className="text-xs font-semibold"
@@ -568,6 +569,7 @@ export default function RelationPage() {
                   src={partner.avatarUrl}
                   name={partner.displayName || "?"}
                   size="lg"
+                  previewable
                 />
                 <span
                   className="text-xs font-semibold"
@@ -768,6 +770,7 @@ export default function RelationPage() {
                 src={partner.avatarUrl}
                 name={partner.displayName || "?"}
                 size="sm"
+                previewable
               />
               <div className="flex flex-col justify-center flex-1">
                 <h1>

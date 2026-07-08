@@ -19,6 +19,7 @@ import {
   Gift,
   Users,
   Pin,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -155,6 +156,23 @@ export default function GalleryPage() {
     }
   };
 
+  const handleDownload = async (url: string, name: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = name || "photo";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(obj);
+    } catch {
+      // noop
+    }
+  };
+
   const currentPhoto = previewIndex !== null ? photos[previewIndex] : null;
 
   if (loading) return null;
@@ -266,6 +284,15 @@ export default function GalleryPage() {
                 className="p-2 text-white/80 hover:text-red-400 cursor-pointer"
               >
                 <Trash2 size={20} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload(currentPhoto.url, currentPhoto.caption || "photo");
+                }}
+                className="p-2 text-white/80 hover:text-white cursor-pointer"
+              >
+                <Download size={20} />
               </button>
             </div>
 

@@ -266,6 +266,7 @@ export default function ProfilePage() {
             src={profile.avatarUrl}
             name={profile.displayName}
             size="xl"
+            previewable
           />
           <input
             ref={avatarRef}

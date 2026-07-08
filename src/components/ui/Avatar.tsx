@@ -1,4 +1,5 @@
 import { cn, getInitials } from "@/lib/utils";
+import { ImageViewer } from "@/components/ui/ImageViewer";
 
 interface AvatarProps {
   src?: string | null;
@@ -7,6 +8,7 @@ interface AvatarProps {
   online?: boolean;
   gradient?: string;
   className?: string;
+  previewable?: boolean;
 }
 
 const sizeStyles: Record<string, string> = {
@@ -17,14 +19,15 @@ const sizeStyles: Record<string, string> = {
   xl: "w-24 h-24 text-3xl",
 };
 
-export function Avatar({ src, name, size = "md", online, gradient, className }: AvatarProps) {
+export function Avatar({ src, name, size = "md", online, gradient, className, previewable }: AvatarProps) {
   const initials = getInitials(name);
 
-  return (
+  const avatarEl = (
     <div className="relative inline-flex shrink-0">
       <div
         className={cn(
           "rounded-full flex items-center justify-center overflow-hidden font-bold",
+          previewable && src ? "cursor-pointer" : "",
           gradient
             ? ""
             : "bg-[var(--accent)] text-[var(--text-on-accent)]",
@@ -44,4 +47,14 @@ export function Avatar({ src, name, size = "md", online, gradient, className }: 
       )}
     </div>
   );
+
+  if (previewable && src) {
+    return (
+      <ImageViewer src={src} alt={name}>
+        {(open) => <div onClick={open}>{avatarEl}</div>}
+      </ImageViewer>
+    );
+  }
+
+  return avatarEl;
 }

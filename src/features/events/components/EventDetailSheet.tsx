@@ -21,6 +21,7 @@ import {
   X,
   Loader2,
   ExternalLink,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -511,12 +512,34 @@ export function EventDetailSheet({
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
             <div className="relative max-w-[430px] w-full pointer-events-auto">
-              <button
-                onClick={() => setPreviewUrl(null)}
-                className="absolute -top-10 right-0 p-2 text-white/80 hover:text-white transition-colors cursor-pointer z-10"
-              >
-                <X size={24} />
-              </button>
+              <div className="absolute -top-10 right-0 flex items-center gap-2 z-10">
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const res = await fetch(previewUrl);
+                      const blob = await res.blob();
+                      const obj = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = obj;
+                      a.download = "photo";
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(obj);
+                    } catch { /* noop */ }
+                  }}
+                  className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+                >
+                  <Download size={20} />
+                </button>
+                <button
+                  onClick={() => setPreviewUrl(null)}
+                  className="p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X size={24} />
+                </button>
+              </div>
               <div className="rounded-[var(--radius-lg)] overflow-hidden">
                 <img
                   src={previewUrl}
