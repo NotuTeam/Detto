@@ -29,7 +29,10 @@ export async function getEventsByMonth(year: number, month: number) {
       where: {
         relationshipId: relationship.id,
         deletedAt: null,
-        NOT: { description: "[AUTO:NOTES_CONTAINER]" },
+        OR: [
+          { description: null },
+          { description: { not: "[AUTO:NOTES_CONTAINER]" } },
+        ],
         date: { gte: start, lte: end },
       },
       orderBy: { date: "asc" },

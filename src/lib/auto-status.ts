@@ -28,7 +28,10 @@ export async function sendDayOfEventReminders() {
     where: {
       deletedAt: null,
       date: { gte: todayStart, lt: todayEnd },
-      description: { not: { contains: "[AUTO:" } },
+      OR: [
+        { description: null },
+        { description: { not: { contains: "[AUTO:" } } },
+      ],
     },
     include: {
       relationship: true,
@@ -98,7 +101,10 @@ export async function sendTomorrowEventReminders() {
     where: {
       deletedAt: null,
       date: { gte: tomorrowStart, lt: tomorrowEnd },
-      description: { not: { contains: "[AUTO:" } },
+      OR: [
+        { description: null },
+        { description: { not: { contains: "[AUTO:" } } },
+      ],
     },
     include: {
       relationship: true,

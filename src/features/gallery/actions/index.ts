@@ -200,7 +200,10 @@ export async function getRelationshipEvents() {
       where: {
         relationshipId: relationship.id,
         deletedAt: null,
-        description: { not: { contains: "[AUTO:" } },
+        OR: [
+          { description: null },
+          { description: { not: { contains: "[AUTO:" } } },
+        ],
       },
       orderBy: { date: "desc" },
       select: { id: true, title: true, category: true, date: true },

@@ -38,7 +38,10 @@ export async function getTimelineEvents(limit = 200) {
       where: {
         relationshipId: relationship.id,
         deletedAt: null,
-        NOT: { description: "[AUTO:NOTES_CONTAINER]" },
+        OR: [
+          { description: null },
+          { description: { not: "[AUTO:NOTES_CONTAINER]" } },
+        ],
       },
       orderBy: { date: "desc" },
       take: limit,
