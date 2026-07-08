@@ -14,11 +14,13 @@ export interface GalleryPhoto {
   mimeType: string;
   uploadedBy: string;
   createdAt: string;
+  displayDate: string;
   event: {
     id: string;
     title: string;
     category: string;
     date: string;
+    description: string | null;
   };
   uploader: {
     id: string;
@@ -26,6 +28,8 @@ export interface GalleryPhoto {
     avatarUrl: string | null;
   };
 }
+
+const NOTES_EVENT_TAG = "[AUTO:NOTES_CONTAINER]";
 
 export async function getGalleryPhotos(cursor?: string, limit = 20) {
   try {
@@ -41,10 +45,9 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
           relationshipId: relationship.id,
           deletedAt: null,
         },
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
       },
-      orderBy: { createdAt: "desc" },
-      take: limit + 1,
+      orderBy: { createdAt: "asc" },
+      take: 500,
       select: {
         id: true,
         url: true,
@@ -53,7 +56,7 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
         uploadedBy: true,
         createdAt: true,
         event: {
-          select: { id: true, title: true, category: true, date: true },
+          select: { id: true, title: true, category: true, date: true, description: true },
         },
         uploader: {
           select: { id: true, displayName: true, avatarUrl: true },
@@ -61,22 +64,36 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
       },
     });
 
-    let nextCursor: string | null = null;
-    if (photos.length > limit) {
-      const next = photos.pop();
-      nextCursor = next!.createdAt.toISOString();
-    }
+    const withDisplayDate = photos.map((p: (typeof photos)[number]) => {
+      const isNotes = p.event.description?.startsWith("[AUTO:");
+      const displayDate = isNotes ? p.createdAt : p.event.date;
+      return {
+        ...p,
+        displayDate: displayDate.toISOString(),
+        createdAt: p.createdAt.toISOString(),
+        event: {
+          ...p.event,
+          date: p.event.date.toISOString(),
+        },
+      };
+    });
 
-    const serialized = photos.map((p: (typeof photos)[number]) => ({
-      ...p,
-      createdAt: p.createdAt.toISOString(),
-      event: {
-        ...p.event,
-        date: p.event.date.toISOString(),
-      },
-    }));
+    withDisplayDate.sort(
+      (a: (typeof withDisplayDate)[number], b: (typeof withDisplayDate)[number]) =>
+        new Date(a.displayDate).getTime() - new Date(b.displayDate).getTime(),
+    );
 
-    return { success: true, data: { photos: serialized, nextCursor } };
+    // Paginate after sorting
+    const startIdx = cursor
+      ? withDisplayDate.findIndex((p: (typeof withDisplayDate)[number]) => p.createdAt === cursor) + 1
+      : 0;
+    const page = withDisplayDate.slice(startIdx, startIdx + limit);
+    const nextCursor =
+      startIdx + limit < withDisplayDate.length
+        ? page[page.length - 1]?.createdAt ?? null
+        : null;
+
+    return { success: true, data: { photos: page, nextCursor } };
   } catch (err) {
     console.error("getGalleryPhotos error:", err);
     return { success: false, error: { code: "INTERNAL_ERROR" } };

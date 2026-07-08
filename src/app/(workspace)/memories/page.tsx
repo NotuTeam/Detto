@@ -58,6 +58,7 @@ interface Photo {
   mimeType: string;
   uploadedBy: string;
   createdAt: string;
+  displayDate: string;
   event: { id: string; title: string; category: string; date: string };
   uploader: { id: string; displayName: string; avatarUrl: string | null };
 }
@@ -236,8 +237,8 @@ export default function GalleryPage() {
                     alt={photo.caption || ""}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  {/* Bottom gradient with event info */}
-                  <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                  {/* Bottom gradient with event info + date */}
+                  <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
                     <div className="flex items-center gap-1">
                       {(() => {
                         const EvIcon =
@@ -248,6 +249,13 @@ export default function GalleryPage() {
                         {photo.event.title}
                       </span>
                     </div>
+                    <span className="text-[0.55rem] text-white/50">
+                      {new Date(photo.displayDate).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
                   </div>
                 </div>
               );
@@ -340,7 +348,11 @@ export default function GalleryPage() {
                     })()}
                     <span className="text-[0.7rem] text-white/50">
                       {currentPhoto.event.title} ·{" "}
-                      {currentPhoto.uploader.displayName}
+                      {new Date(currentPhoto.displayDate).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </span>
                   </div>
                 </div>
