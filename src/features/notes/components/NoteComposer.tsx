@@ -5,6 +5,7 @@ import { Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { createNote, uploadNoteImage } from "../actions";
+import { compressImage } from "@/lib/compress-image";
 
 interface NoteComposerProps {
   isOpen: boolean;
@@ -39,7 +40,8 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
       if (!file) return;
       setUploading(true);
 
-      const result = await uploadNoteImage(file);
+      const compressed = await compressImage(file).catch(() => file);
+      const result = await uploadNoteImage(compressed);
       if (result.success && result.data) {
         setImageUrl(result.data.url);
         setImagePublicId(result.data.publicId);

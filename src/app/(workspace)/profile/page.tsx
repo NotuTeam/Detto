@@ -25,6 +25,7 @@ import {
   uploadAvatar,
   changePassword,
 } from "@/features/profile/actions";
+import { compressImage } from "@/lib/compress-image";
 import { logoutUser } from "@/features/auth/actions";
 import {
   subscribePushNotifications,
@@ -135,7 +136,8 @@ export default function ProfilePage() {
     if (!file) return;
     setUploadingAvatar(true);
 
-    const result = await uploadAvatar(file);
+    const compressed = await compressImage(file).catch(() => file);
+    const result = await uploadAvatar(compressed);
     if (result.success && result.data) {
       setProfile((prev) => (prev ? { ...prev, avatarUrl: result.data!.url } : prev));
       setUser({

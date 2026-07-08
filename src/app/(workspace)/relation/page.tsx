@@ -30,6 +30,7 @@ import {
   createRelationship,
   ensureInvitation,
 } from "@/features/relationship/actions";
+import { compressImage } from "@/lib/compress-image";
 
 export default function RelationPage() {
   const user = useUserStore((s) => s.user);
@@ -197,7 +198,8 @@ export default function RelationPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingBanner(true);
-    const result = await uploadBanner(file);
+    const compressed = await compressImage(file).catch(() => file);
+    const result = await uploadBanner(compressed);
     if (result.success) await loadData();
     setUploadingBanner(false);
     if (bannerRef.current) bannerRef.current.value = "";

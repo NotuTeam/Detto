@@ -22,6 +22,7 @@ import {
   joinRelationship,
 } from "@/features/relationship/actions";
 import { uploadAvatarAction } from "@/features/media/actions";
+import { compressImage } from "@/lib/compress-image";
 import { toast } from "sonner";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
@@ -180,7 +181,8 @@ function RegisterContent() {
     if (!file) return;
     setUploadingPhoto(true);
     try {
-      const result = await uploadAvatarAction(file);
+      const compressed = await compressImage(file).catch(() => file);
+      const result = await uploadAvatarAction(compressed);
       if (result.success && result.data) {
         setAvatarUrl(result.data.url);
         toast.success("Profile photo uploaded successfully");

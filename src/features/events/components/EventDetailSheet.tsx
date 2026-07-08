@@ -27,6 +27,7 @@ import {
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { getEventMedia, uploadEventMedia, deleteEventMedia, getWishlistItemForEvent } from "../actions";
+import { compressImage } from "@/lib/compress-image";
 import type { EventItem } from "./EventCard";
 
 interface WishlistEventData {
@@ -128,7 +129,8 @@ export function EventDetailSheet({
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const result = await uploadEventMedia(event.id, file);
+    const compressed = await compressImage(file).catch(() => file);
+    const result = await uploadEventMedia(event.id, compressed);
     if (result.success && result.data) {
       setMedia((prev) => [
         {

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
+import { compressImage } from "@/lib/compress-image";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { cn } from "@/lib/utils";
 import {
@@ -138,7 +139,8 @@ export default function GalleryPage() {
     const file = e.target.files?.[0];
     if (!file || !selectedEventId) return;
     setUploading(true);
-    const result = await uploadGalleryPhoto(selectedEventId, file);
+    const compressed = await compressImage(file).catch(() => file);
+    const result = await uploadGalleryPhoto(selectedEventId, compressed);
     if (result.success) {
       fetchPhotos();
       setUploadOpen(false);

@@ -36,6 +36,7 @@ import {
   toggleWishlistCheck,
   createEventFromWishlist,
 } from "@/features/wishlist/actions";
+import { compressImage } from "@/lib/compress-image";
 
 import Love from "@/assets/illustration/love.svg";
 
@@ -149,7 +150,8 @@ export default function WishlistPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
-    const result = await uploadWishlistImage(file);
+    const compressed = await compressImage(file).catch(() => file);
+    const result = await uploadWishlistImage(compressed);
     if (result.success && result.data) {
       setImageUrls((prev) => [...prev, result.data!.url]);
     }
