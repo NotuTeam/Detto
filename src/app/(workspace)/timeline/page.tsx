@@ -251,29 +251,23 @@ export default function TimelinePage() {
                   return (
                     <div
                       key={ev.id}
-                      className="ml-9 flex gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+                      className="ml-9 cursor-pointer active:scale-[0.98] transition-transform"
                       onClick={() => handleEventClick(ev)}
                     >
-                      {/* Event dot on the line */}
+
+                      {/* Event card */}
                       <div
-                        className="w-3 h-3 rounded-full shrink-0 mt-5 relative z-10 -ml-[21.5px]"
+                        className="flex-1 rounded-[var(--radius-lg)] p-4 relative overflow-hidden border-l-[3px]"
                         style={{
-                          background:
+                          background: "var(--surface)",
+                          border: "1px solid var(--border-subtle)",
+                          borderLeftWidth: "3px",
+                          borderLeftColor:
                             status.variant === "accent"
                               ? "var(--accent)"
                               : status.variant === "success"
                                 ? "var(--success)"
-                                : "var(--text-secondary)",
-                          boxShadow: `0 0 0 3px var(--bg-page)`,
-                        }}
-                      />
-
-                      {/* Event card */}
-                      <div
-                        className="flex-1 rounded-[var(--radius-lg)] p-4 relative overflow-hidden"
-                        style={{
-                          background: "var(--surface)",
-                          border: "1px solid var(--border-subtle)",
+                                : "var(--border-subtle)",
                         }}
                       >
                         {/* Category + status row */}
