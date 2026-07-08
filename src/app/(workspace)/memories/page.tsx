@@ -20,6 +20,7 @@ import {
   Users,
   Pin,
   Download,
+  Music,
   type LucideIcon,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -48,6 +49,7 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   BIRTHDAY: Cake,
   HOLIDAY: Gift,
   FAMILY: Users,
+  CONCERT: Music,
   OTHER: Pin,
 };
 

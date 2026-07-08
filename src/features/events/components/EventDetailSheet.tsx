@@ -13,6 +13,7 @@ import {
   Gift,
   Users,
   Pin,
+  Music,
   MapPin,
   Navigation,
   Trash2,
@@ -49,6 +50,7 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   BIRTHDAY: Cake,
   HOLIDAY: Gift,
   FAMILY: Users,
+  CONCERT: Music,
   OTHER: Pin,
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, Calendar, UtensilsCrossed, Coffee, Clapperboard, Plane, ShoppingBag, Heart, Cake, Gift, Users, Pin, type LucideIcon } from "lucide-react";
+import { MapPin, Calendar, UtensilsCrossed, Coffee, Clapperboard, Plane, ShoppingBag, Heart, Cake, Gift, Users, Pin, Music, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardDecor } from "@/components/ui/DecorativeBlobs";
 
@@ -16,6 +16,7 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   BIRTHDAY: Cake,
   HOLIDAY: Gift,
   FAMILY: Users,
+  CONCERT: Music,
   OTHER: Pin,
 };
 
@@ -30,6 +31,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   BIRTHDAY: "Birthday",
   HOLIDAY: "Holiday",
   FAMILY: "Family",
+  CONCERT: "Concert",
   OTHER: "Other",
 };
 
