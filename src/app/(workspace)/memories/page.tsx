@@ -21,6 +21,8 @@ import {
   Pin,
   Download,
   Music,
+  Dumbbell,
+  Gamepad2,
   type LucideIcon,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -50,6 +52,8 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   HOLIDAY: Gift,
   FAMILY: Users,
   CONCERT: Music,
+  WORKOUT: Dumbbell,
+  PLAYTIME: Gamepad2,
   OTHER: Pin,
 };
 

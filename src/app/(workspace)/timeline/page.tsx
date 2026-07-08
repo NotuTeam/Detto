@@ -16,6 +16,8 @@ import {
   Plane,
   ShoppingBag,
   Music,
+  Dumbbell,
+  Gamepad2,
   type LucideIcon,
 } from "lucide-react";
 import { EventDetailSheet } from "@/features/events/components/EventDetailSheet";
@@ -43,6 +45,8 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   HOLIDAY: Gift,
   FAMILY: Users,
   CONCERT: Music,
+  WORKOUT: Dumbbell,
+  PLAYTIME: Gamepad2,
   OTHER: Pin,
 };
 

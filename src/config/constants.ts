@@ -10,6 +10,8 @@ export const EVENT_CATEGORIES = [
   { value: "HOLIDAY", label: "Holiday", iconName: "Gift" },
   { value: "FAMILY", label: "Family", iconName: "Users" },
   { value: "CONCERT", label: "Concert", iconName: "Music" },
+  { value: "WORKOUT", label: "Workout", iconName: "Dumbbell" },
+  { value: "PLAYTIME", label: "Playtime", iconName: "Gamepad2" },
   { value: "OTHER", label: "Other", iconName: "Pin" },
 ] as const;
 

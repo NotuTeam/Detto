@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Calendar, UtensilsCrossed, Coffee, Clapperboard, Plane, ShoppingBag, Heart, Cake, Gift, Users, Pin, Music, type LucideIcon } from "lucide-react";
+import { Calendar, UtensilsCrossed, Coffee, Clapperboard, Plane, ShoppingBag, Heart, Cake, Gift, Users, Pin, Music, Dumbbell, Gamepad2, type LucideIcon } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -20,6 +20,8 @@ const CATEGORY_ICON: Record<string, LucideIcon> = {
   HOLIDAY: Gift,
   FAMILY: Users,
   CONCERT: Music,
+  WORKOUT: Dumbbell,
+  PLAYTIME: Gamepad2,
   OTHER: Pin,
 };
 
@@ -35,6 +37,8 @@ const CATEGORIES = [
   { value: "HOLIDAY", label: "Holiday" },
   { value: "FAMILY", label: "Family" },
   { value: "CONCERT", label: "Concert" },
+  { value: "WORKOUT", label: "Workout" },
+  { value: "PLAYTIME", label: "Playtime" },
   { value: "OTHER", label: "Other" },
 ];
 

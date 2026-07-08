@@ -23,6 +23,8 @@ import {
   Users,
   Pin,
   Music,
+  Dumbbell,
+  Gamepad2,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
@@ -54,6 +56,8 @@ const CATEGORIES = [
   { value: "HOLIDAY", label: "Holiday", icon: Gift },
   { value: "FAMILY", label: "Family", icon: Users },
   { value: "CONCERT", label: "Concert", icon: Music },
+  { value: "WORKOUT", label: "Workout", icon: Dumbbell },
+  { value: "PLAYTIME", label: "Playtime", icon: Gamepad2 },
   { value: "OTHER", label: "Other", icon: Pin },
 ] as const;
 
