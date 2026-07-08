@@ -24,19 +24,15 @@ export async function sendDayOfEventReminders() {
   const todayEnd = new Date(todayStart);
   todayEnd.setDate(todayEnd.getDate() + 1);
 
-  const todayEvents = await prisma.event.findMany({
+  const todayEvents = (await prisma.event.findMany({
     where: {
       deletedAt: null,
       date: { gte: todayStart, lt: todayEnd },
-      OR: [
-        { description: null },
-        { description: { not: { contains: "[AUTO:" } } },
-      ],
     },
     include: {
       relationship: true,
     },
-  });
+  })).filter((e) => !e.description?.startsWith("[AUTO:"));
 
   let sent = 0;
 
@@ -97,19 +93,15 @@ export async function sendTomorrowEventReminders() {
   const tomorrowEnd = new Date(tomorrowStart);
   tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
 
-  const tomorrowEvents = await prisma.event.findMany({
+  const tomorrowEvents = (await prisma.event.findMany({
     where: {
       deletedAt: null,
       date: { gte: tomorrowStart, lt: tomorrowEnd },
-      OR: [
-        { description: null },
-        { description: { not: { contains: "[AUTO:" } } },
-      ],
     },
     include: {
       relationship: true,
     },
-  });
+  })).filter((e) => !e.description?.startsWith("[AUTO:"));
 
   let sent = 0;
 

@@ -200,21 +200,21 @@ export async function getRelationshipEvents() {
       where: {
         relationshipId: relationship.id,
         deletedAt: null,
-        OR: [
-          { description: null },
-          { description: { not: { contains: "[AUTO:" } } },
-        ],
       },
       orderBy: { date: "desc" },
-      select: { id: true, title: true, category: true, date: true },
+      select: { id: true, title: true, category: true, date: true, description: true },
     });
 
     return {
       success: true,
-      data: events.map((e: (typeof events)[number]) => ({
-        ...e,
-        date: e.date.toISOString(),
-      })),
+      data: events
+        .filter((e: (typeof events)[number]) => !e.description?.startsWith("[AUTO:"))
+        .map((e: (typeof events)[number]) => ({
+          id: e.id,
+          title: e.title,
+          category: e.category,
+          date: e.date.toISOString(),
+        })),
     };
   } catch (err) {
     console.error("getRelationshipEvents error:", err);
