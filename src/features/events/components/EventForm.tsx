@@ -173,7 +173,7 @@ export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: 
 
         <div>
           <label className="text-[0.8rem] font-semibold mb-1.5 block" style={{ color: "var(--text-secondary)" }}>
-            Notes
+            Notes <span className="font-normal opacity-60">(optional)</span>
           </label>
           <textarea
             value={description}
