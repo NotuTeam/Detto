@@ -88,5 +88,19 @@ export async function getSession() {
   const session = await authRepository.getSession(token);
   if (!session || session.expiresAt < new Date()) return null;
 
+  // Auto-renew: extend DB + cookie if more than halfway expired (3.5 days in)
+  const totalTtl = 7 * 24 * 60 * 60 * 1000;
+  const remaining = session.expiresAt.getTime() - Date.now();
+  if (remaining < totalTtl / 2) {
+    await authRepository.touchSession(token);
+    cookieStore.set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+
   return session;
 }

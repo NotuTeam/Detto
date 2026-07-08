@@ -82,4 +82,13 @@ export const authRepository = {
   async deleteSession(token: string) {
     return prisma.session.delete({ where: { token } });
   },
+
+  async touchSession(token: string) {
+    const newExpiry = new Date();
+    newExpiry.setDate(newExpiry.getDate() + 7);
+    return prisma.session.update({
+      where: { token },
+      data: { expiresAt: newExpiry },
+    });
+  },
 };
