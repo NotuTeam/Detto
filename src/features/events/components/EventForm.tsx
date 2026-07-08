@@ -48,7 +48,6 @@ interface EventFormProps {
 
 export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: EventFormProps) {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [category, setCategory] = useState("DATE");
   const [date, setDate] = useState("");
   const [locationName, setLocationName] = useState("");
@@ -57,7 +56,6 @@ export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: 
 
   const reset = useCallback(() => {
     setTitle("");
-    setDescription("");
     setCategory("DATE");
     setDate("");
     setLocationName("");
@@ -70,7 +68,6 @@ export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: 
     /* eslint-disable react-hooks/set-state-in-effect -- syncing external props to form state on open */
     if (editEvent) {
       setTitle(editEvent.title);
-      setDescription(editEvent.description || "");
       setCategory(editEvent.category);
       setDate(editEvent.date.split("T")[0]);
       setLocationName(editEvent.locationName || "");
@@ -94,7 +91,6 @@ export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: 
 
     const payload = {
       title: title.trim(),
-      description: description.trim() || undefined,
       category,
       date,
       locationName: locationName.trim() || undefined,
@@ -172,25 +168,6 @@ export function EventForm({ isOpen, onClose, onSaved, editEvent, initialDate }: 
           placeholder="https://maps.google.com/..."
           hint="Paste a Google Maps link so it's easy to find later"
         />
-
-        <div>
-          <label className="text-[0.8rem] font-semibold mb-1.5 block" style={{ color: "var(--text-secondary)" }}>
-            Notes <span className="font-normal opacity-60">(optional)</span>
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add a note..."
-            rows={3}
-            maxLength={500}
-            className="w-full rounded-[var(--radius-md)] p-3 text-[0.9rem] resize-none outline-none"
-            style={{
-              background: "var(--surface-alt)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          />
-        </div>
 
         <Button
           fullWidth

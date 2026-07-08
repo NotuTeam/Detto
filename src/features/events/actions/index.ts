@@ -342,3 +342,87 @@ export async function getWishlistItemForEvent(eventId: string) {
     return { success: false, error: { code: "INTERNAL_ERROR" } };
   }
 }
+
+// ── Event Comments ──────────────────────────────────────────
+
+export async function getEventComments(eventId: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const comments = await prisma.eventComment.findMany({
+      where: { eventId },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        message: true,
+        createdAt: true,
+        user: { select: { id: true, displayName: true, avatarUrl: true } },
+      },
+    });
+
+    return {
+      success: true,
+      data: comments.map((c: (typeof comments)[number]) => ({
+        ...c,
+        createdAt: c.createdAt.toISOString(),
+      })),
+    };
+  } catch (err) {
+    console.error("getEventComments error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+export async function addEventComment(eventId: string, message: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    if (!message.trim()) return { success: false, error: { code: "INVALID_INPUT" } };
+
+    const comment = await prisma.eventComment.create({
+      data: {
+        eventId,
+        userId: session.user.id,
+        message: message.trim(),
+      },
+      select: {
+        id: true,
+        message: true,
+        createdAt: true,
+        user: { select: { id: true, displayName: true, avatarUrl: true } },
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        ...comment,
+        createdAt: comment.createdAt.toISOString(),
+      },
+    };
+  } catch (err) {
+    console.error("addEventComment error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+export async function deleteEventComment(commentId: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const existing = await prisma.eventComment.findUnique({ where: { id: commentId } });
+    if (!existing || existing.userId !== session.user.id) {
+      return { success: false, error: { code: "FORBIDDEN" } };
+    }
+
+    await prisma.eventComment.delete({ where: { id: commentId } });
+
+    return { success: true };
+  } catch (err) {
+    console.error("deleteEventComment error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}

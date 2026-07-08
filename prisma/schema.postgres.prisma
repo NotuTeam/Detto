@@ -34,6 +34,7 @@ model User {
   pushSubscriptions     PushSubscription[]
   wishlistItems         WishlistItem[]
   notes                 Note[]         @relation("NoteCreator")
+  eventComments         EventComment[]
 }
 
 model Session {
@@ -118,11 +119,25 @@ model Event {
   wishlistItem  WishlistItem?  @relation(fields: [wishlistItemId], references: [id], onDelete: SetNull)
   media         Media[]
   ratings       Rating[]
+  comments      EventComment[]
   notifications Notification[]
 
   @@index([relationshipId])
   @@index([date])
   @@index([status])
+}
+
+model EventComment {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
 }
 
 model Media {

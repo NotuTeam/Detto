@@ -134,12 +134,6 @@ export default function GalleryPage() {
     return () => observer.disconnect();
   }, [nextCursor, loadingMore, fetchPhotos]);
 
-  const handleOpenUpload = async () => {
-    const result = await getRelationshipEvents();
-    if (result.success) setEvents(result.data as EventOption[]);
-    setUploadOpen(true);
-  };
-
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedEventId) return;
@@ -207,9 +201,6 @@ export default function GalleryPage() {
             journey
           </p>
         </div>
-        <Button size="sm" onClick={handleOpenUpload}>
-          <Plus size={14} /> Upload
-        </Button>
       </div>
 
       {photos.length === 0 ? (
@@ -217,7 +208,6 @@ export default function GalleryPage() {
           illustration={Camera}
           title="The gallery is still empty"
           description="Upload photos from your dates, and watch it fill up"
-          action={{ label: "Upload Photo", onClick: handleOpenUpload }}
         />
       ) : (
         <>
@@ -306,7 +296,10 @@ export default function GalleryPage() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDownload(currentPhoto.url, currentPhoto.caption || "photo");
+                  handleDownload(
+                    currentPhoto.url,
+                    currentPhoto.caption || "photo",
+                  );
                 }}
                 className="p-2 text-white/80 hover:text-white cursor-pointer"
               >
@@ -350,11 +343,14 @@ export default function GalleryPage() {
                     })()}
                     <span className="text-[0.7rem] text-white/50">
                       {currentPhoto.event.title} ·{" "}
-                      {new Date(currentPhoto.displayDate).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(currentPhoto.displayDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
                     </span>
                   </div>
                 </div>

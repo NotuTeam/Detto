@@ -23,11 +23,13 @@ import {
   Loader2,
   ExternalLink,
   Download,
+  MessageCircle,
+  Send,
   type LucideIcon,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
-import { getEventMedia, uploadEventMedia, deleteEventMedia, getWishlistItemForEvent } from "../actions";
+import { getEventMedia, uploadEventMedia, deleteEventMedia, getWishlistItemForEvent, getEventComments, addEventComment, deleteEventComment } from "../actions";
 import { compressImage } from "@/lib/compress-image";
 import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 import type { EventItem } from "./EventCard";
@@ -77,6 +79,13 @@ interface EventMedia {
   uploader?: { id: string; displayName: string };
 }
 
+interface EventComment {
+  id: string;
+  message: string;
+  createdAt: string;
+  user: { id: string; displayName: string; avatarUrl: string | null };
+}
+
 interface EventDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -98,6 +107,9 @@ export function EventDetailSheet({
   const [wishlistData, setWishlistData] = useState<WishlistEventData | null>(
     null,
   );
+  const [comments, setComments] = useState<EventComment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [sendingComment, setSendingComment] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -107,21 +119,42 @@ export function EventDetailSheet({
     if (!isOpen || !event) return;
     let cancelled = false;
     (async () => {
-      const [mediaResult, wishlistResult] = await Promise.all([
+      const [mediaResult, wishlistResult, commentsResult] = await Promise.all([
         getEventMedia(event.id),
         event.wishlistItemId
           ? getWishlistItemForEvent(event.id)
           : Promise.resolve({ success: true, data: null }),
+        getEventComments(event.id),
       ]);
       if (cancelled) return;
       if (mediaResult.success) setMedia(mediaResult.data as EventMedia[]);
       if (wishlistResult.success)
         setWishlistData(wishlistResult.data as WishlistEventData | null);
+      if (commentsResult.success) setComments(commentsResult.data as EventComment[]);
     })();
+    setCommentText("");
     return () => {
       cancelled = true;
     };
   }, [isOpen, event]);
+
+  const handleSendComment = async () => {
+    if (!commentText.trim() || !event) return;
+    setSendingComment(true);
+    const result = await addEventComment(event.id, commentText.trim());
+    if (result.success && result.data) {
+      setComments((prev) => [...prev, result.data as EventComment]);
+      setCommentText("");
+    }
+    setSendingComment(false);
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const result = await deleteEventComment(commentId);
+    if (result.success) {
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    }
+  };
 
   if (!event) return null;
 
@@ -238,15 +271,6 @@ export function EventDetailSheet({
 
             {/* Info rows */}
             <div className="flex flex-col gap-2.5">
-              {event.description && !event.description.startsWith("[AUTO:") && (
-                <p
-                  className="text-[0.85rem] leading-relaxed whitespace-pre-line"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {event.description}
-                </p>
-              )}
-
               {/* Wishlist links */}
               {wishlistData && wishlistData.linkUrls.length > 0 && (
                 <div className="flex flex-col gap-1.5">
@@ -321,6 +345,105 @@ export function EventDetailSheet({
                 </a>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Notes / Comments Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <MessageCircle size={16} style={{ color: "var(--text-secondary)" }} />
+            <span
+              className="text-[0.85rem] font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Notes {comments.length > 0 && `(${comments.length})`}
+            </span>
+          </div>
+
+          {/* Comment bubbles */}
+          {comments.length > 0 && (
+            <div className="flex flex-col gap-3 mb-4">
+              {comments.map((c) => {
+                const isMe = c.user.id === currentUserId;
+                return (
+                  <div key={c.id} className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[0.7rem] font-bold"
+                      style={{
+                        background: isMe ? "var(--accent)" : "var(--surface-alt)",
+                        color: isMe ? "var(--text-on-accent)" : "var(--text-secondary)",
+                      }}
+                    >
+                      {c.user.displayName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
+                      <div
+                        className="flex items-center justify-between gap-2 mb-0.5"
+                        style={{ flexDirection: isMe ? "row-reverse" : "row" }}
+                      >
+                        <span className="text-[0.7rem] font-semibold" style={{ color: "var(--text-secondary)" }}>
+                          {isMe ? "You" : c.user.displayName}
+                        </span>
+                        <span className="text-[0.6rem]" style={{ color: "var(--text-secondary)", opacity: 0.6 }}>
+                          {new Date(c.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                        </span>
+                      </div>
+                      <div
+                        className="rounded-2xl px-3.5 py-2 text-[0.85rem] leading-relaxed relative group"
+                        style={{
+                          background: isMe ? "var(--accent)" : "var(--surface-alt)",
+                          color: isMe ? "var(--text-on-accent)" : "var(--text-primary)",
+                          borderTopRightRadius: isMe ? "4px" : undefined,
+                          borderTopLeftRadius: !isMe ? "4px" : undefined,
+                        }}
+                      >
+                        <p className="whitespace-pre-line">{c.message}</p>
+                        {isMe && (
+                          <button
+                            onClick={() => handleDeleteComment(c.id)}
+                            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <X size={10} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Input */}
+          <div
+            className="flex items-center gap-2 rounded-full px-3 py-2"
+            style={{
+              background: "var(--surface-alt)",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendComment()}
+              placeholder="Leave some notes about this moment..."
+              className="flex-1 bg-transparent text-[0.85rem] outline-none"
+              style={{ color: "var(--text-primary)" }}
+              disabled={sendingComment}
+            />
+            <button
+              onClick={handleSendComment}
+              disabled={!commentText.trim() || sendingComment}
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors disabled:opacity-30 shrink-0"
+              style={{ background: "var(--accent)", color: "var(--text-on-accent)" }}
+            >
+              {sendingComment ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Send size={14} />
+              )}
+            </button>
           </div>
         </div>
 
