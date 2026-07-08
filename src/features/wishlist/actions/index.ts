@@ -113,8 +113,8 @@ export async function updateWishlistItem(itemId: string, input: UpdateWishlistIn
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
     const existing = await prisma.wishlistItem.findUnique({ where: { id: itemId } });
-    if (!existing || existing.createdBy !== session.user.id) {
-      return { success: false, error: { code: "FORBIDDEN" } };
+    if (!existing) {
+      return { success: false, error: { code: "NOT_FOUND" } };
     }
 
     const parsed = updateWishlistSchema.parse(input);
@@ -154,8 +154,8 @@ export async function deleteWishlistItem(itemId: string) {
       where: { id: itemId },
       include: { events: { select: { id: true } } },
     });
-    if (!existing || existing.createdBy !== session.user.id) {
-      return { success: false, error: { code: "FORBIDDEN" } };
+    if (!existing) {
+      return { success: false, error: { code: "NOT_FOUND" } };
     }
 
     // Cascade: delete linked events

@@ -754,16 +754,14 @@ function WishlistCard({
               <Calendar size={14} />
             </button>
           )}
-          {item.createdBy === item.creator.id && (
-            <button
-              onClick={() => onDelete(item.id)}
-              className="p-1.5 cursor-pointer transition-colors"
-              style={{ color: "var(--text-secondary)" }}
-              title="Delete"
-            >
-              <Trash2 size={14} />
-            </button>
-          )}
+          <button
+            onClick={() => onDelete(item.id)}
+            className="p-1.5 cursor-pointer transition-colors"
+            style={{ color: "var(--text-secondary)" }}
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
       {item.linkedEvent && (
