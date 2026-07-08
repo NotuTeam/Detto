@@ -46,7 +46,7 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
           deletedAt: null,
         },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
       take: 500,
       select: {
         id: true,
@@ -80,7 +80,7 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
 
     withDisplayDate.sort(
       (a: (typeof withDisplayDate)[number], b: (typeof withDisplayDate)[number]) =>
-        new Date(a.displayDate).getTime() - new Date(b.displayDate).getTime(),
+        new Date(b.displayDate).getTime() - new Date(a.displayDate).getTime(),
     );
 
     // Paginate after sorting
