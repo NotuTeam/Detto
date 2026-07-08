@@ -6,6 +6,7 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { createNote, uploadNoteImage } from "../actions";
 import { compressImage } from "@/lib/compress-image";
+import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 
 interface NoteComposerProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imagePublicId, setImagePublicId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -39,14 +41,17 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
       const file = e.target.files?.[0];
       if (!file) return;
       setUploading(true);
+      setUploadStep("compressing");
 
       const compressed = await compressImage(file).catch(() => file);
+      setUploadStep("uploading");
       const result = await uploadNoteImage(compressed);
       if (result.success && result.data) {
         setImageUrl(result.data.url);
         setImagePublicId(result.data.publicId);
       }
       setUploading(false);
+      setUploadStep(null);
       if (fileRef.current) fileRef.current.value = "";
     },
     [],
@@ -72,6 +77,7 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
 
   return (
     <BottomSheet isOpen={isOpen} onClose={handleClose} title="Leave a Note">
+      <UploadOverlay step={uploadStep} />
       <div className="flex flex-col gap-4">
         {/* Image preview */}
         {imageUrl && (

@@ -26,6 +26,7 @@ import {
   changePassword,
 } from "@/features/profile/actions";
 import { compressImage } from "@/lib/compress-image";
+import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 import { logoutUser } from "@/features/auth/actions";
 import {
   subscribePushNotifications,
@@ -60,6 +61,7 @@ export default function ProfilePage() {
 
   // Avatar
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
 
   // Password
@@ -136,7 +138,9 @@ export default function ProfilePage() {
     if (!file) return;
     setUploadingAvatar(true);
 
+    setUploadStep("compressing");
     const compressed = await compressImage(file).catch(() => file);
+    setUploadStep("uploading");
     const result = await uploadAvatar(compressed);
     if (result.success && result.data) {
       setProfile((prev) => (prev ? { ...prev, avatarUrl: result.data!.url } : prev));
@@ -150,6 +154,7 @@ export default function ProfilePage() {
     }
 
     setUploadingAvatar(false);
+    setUploadStep(null);
     if (avatarRef.current) avatarRef.current.value = "";
   };
 
@@ -248,6 +253,7 @@ export default function ProfilePage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-6">
+      <UploadOverlay step={uploadStep} />
       {/* Header */}
       <div>
         <h1

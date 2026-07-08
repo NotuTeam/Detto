@@ -31,6 +31,7 @@ import {
   ensureInvitation,
 } from "@/features/relationship/actions";
 import { compressImage } from "@/lib/compress-image";
+import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 
 export default function RelationPage() {
   const user = useUserStore((s) => s.user);
@@ -46,6 +47,7 @@ export default function RelationPage() {
 
   // Banner
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
 
   // Nickname edit bottom sheet
@@ -198,10 +200,13 @@ export default function RelationPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingBanner(true);
+    setUploadStep("compressing");
     const compressed = await compressImage(file).catch(() => file);
+    setUploadStep("uploading");
     const result = await uploadBanner(compressed);
     if (result.success) await loadData();
     setUploadingBanner(false);
+    setUploadStep(null);
     if (bannerRef.current) bannerRef.current.value = "";
   };
 
@@ -470,6 +475,7 @@ export default function RelationPage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-5">
+      <UploadOverlay step={uploadStep} />
       {/* Header */}
       <div>
         <h1

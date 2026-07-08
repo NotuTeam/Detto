@@ -37,6 +37,7 @@ import {
   createEventFromWishlist,
 } from "@/features/wishlist/actions";
 import { compressImage } from "@/lib/compress-image";
+import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 
 import Love from "@/assets/illustration/love.svg";
 
@@ -80,6 +81,7 @@ export default function WishlistPage() {
   const [newLink, setNewLink] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const [category, setCategory] = useState("DATE");
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
@@ -150,12 +152,15 @@ export default function WishlistPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
+    setUploadStep("compressing");
     const compressed = await compressImage(file).catch(() => file);
+    setUploadStep("uploading");
     const result = await uploadWishlistImage(compressed);
     if (result.success && result.data) {
       setImageUrls((prev) => [...prev, result.data!.url]);
     }
     setUploadingImage(false);
+    setUploadStep(null);
     if (imageRef.current) imageRef.current.value = "";
   };
 
@@ -226,6 +231,7 @@ export default function WishlistPage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-5">
+      <UploadOverlay step={uploadStep} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

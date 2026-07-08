@@ -23,6 +23,7 @@ import {
 } from "@/features/relationship/actions";
 import { uploadAvatarAction } from "@/features/media/actions";
 import { compressImage } from "@/lib/compress-image";
+import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 import { toast } from "sonner";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
@@ -63,6 +64,7 @@ function RegisterContent() {
   const [inputCode, setInputCode] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const [relationSub, setRelationSub] = useState<"choice" | "join" | "code">(
     "choice",
   );
@@ -181,7 +183,9 @@ function RegisterContent() {
     if (!file) return;
     setUploadingPhoto(true);
     try {
+      setUploadStep("compressing");
       const compressed = await compressImage(file).catch(() => file);
+      setUploadStep("uploading");
       const result = await uploadAvatarAction(compressed);
       if (result.success && result.data) {
         setAvatarUrl(result.data.url);
@@ -193,6 +197,7 @@ function RegisterContent() {
       toast.error("Failed to upload photo");
     } finally {
       setUploadingPhoto(false);
+      setUploadStep(null);
     }
   }
 
@@ -201,6 +206,7 @@ function RegisterContent() {
       className="h-screen flex flex-col px-6 py-8 relative overflow-hidden"
       style={{ background: "var(--bg-page)" }}
     >
+      <UploadOverlay step={uploadStep} />
       {/* Progress bar */}
       <ProgressBar
         current={step}

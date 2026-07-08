@@ -25,6 +25,7 @@ import {
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { compressImage } from "@/lib/compress-image";
+import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { cn } from "@/lib/utils";
 import {
@@ -78,6 +79,7 @@ export default function GalleryPage() {
   const [events, setEvents] = useState<EventOption[]>([]);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -139,7 +141,9 @@ export default function GalleryPage() {
     const file = e.target.files?.[0];
     if (!file || !selectedEventId) return;
     setUploading(true);
+    setUploadStep("compressing");
     const compressed = await compressImage(file).catch(() => file);
+    setUploadStep("uploading");
     const result = await uploadGalleryPhoto(selectedEventId, compressed);
     if (result.success) {
       fetchPhotos();
@@ -147,6 +151,7 @@ export default function GalleryPage() {
       setSelectedEventId("");
     }
     setUploading(false);
+    setUploadStep(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -181,6 +186,7 @@ export default function GalleryPage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-5">
+      <UploadOverlay step={uploadStep} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
