@@ -215,16 +215,21 @@ export default function GalleryPage() {
         />
       ) : (
         <>
-          {/* Masonry-ish bento grid */}
-          <div className="columns-2 gap-2 space-y-2">
+          {/* Bento grid */}
+          <div
+            className="grid grid-cols-2 gap-2 grid-flow-dense"
+            style={{
+              gridAutoRows: "calc((min(100vw, 430px) - 2.5rem) / 2)",
+            }}
+          >
             {photos.map((photo, i) => {
               const isTall = i % 5 === 0;
               return (
                 <div
                   key={photo.id}
                   className={cn(
-                    "relative break-inside-avoid rounded-[var(--radius-md)] overflow-hidden cursor-pointer group",
-                    isTall ? "aspect-[3/4]" : "aspect-square",
+                    "relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer group",
+                    isTall && "row-span-2",
                   )}
                   onClick={() => setPreviewIndex(i)}
                 >

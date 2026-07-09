@@ -41,7 +41,7 @@ export async function getDashboardData() {
     prisma.media.findMany({
       where: { event: { relationshipId: relationship.id, deletedAt: null } },
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 100,
       select: { id: true, url: true, caption: true },
     }),
     prisma.event.count({
@@ -56,13 +56,18 @@ export async function getDashboardData() {
     }),
   ]);
 
+  // Randomize photos for slideshow variety (max 10 shown, changes each load)
+  const randomizedPhotos = [...recentPhotos]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 10);
+
   return {
     success: true,
     data: {
       relationship,
       nextEvent,
       upcomingEvents,
-      recentPhotos,
+      recentPhotos: randomizedPhotos,
       stats: {
         totalEvents,
         totalPhotos,
