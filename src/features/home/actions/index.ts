@@ -4,6 +4,14 @@ import { getCurrentRelationship } from "@/features/relationship/actions";
 import { getSession } from "@/features/auth/actions";
 import { prisma } from "@/lib/prisma";
 
+const NOTES_EVENT_TAG = "[AUTO:NOTES_CONTAINER]";
+const excludeAutoEvents = {
+  OR: [
+    { description: null },
+    { description: { not: NOTES_EVENT_TAG } },
+  ],
+};
+
 export async function getDashboardData() {
   const session = await getSession();
   if (!session) return { success: false, error: { code: "UNAUTHORIZED", message: "Please login" } };
@@ -23,6 +31,7 @@ export async function getDashboardData() {
         date: { gte: startOfToday, lte: oneMonthLater },
         deletedAt: null,
         status: "UPCOMING",
+        ...excludeAutoEvents,
       },
       orderBy: { date: "asc" },
       select: { id: true, title: true, date: true, category: true, locationName: true },
@@ -33,6 +42,7 @@ export async function getDashboardData() {
         deletedAt: null,
         date: { gte: startOfToday, lte: oneMonthLater },
         status: "UPCOMING",
+        ...excludeAutoEvents,
       },
       orderBy: { date: "asc" },
       take: 3,

@@ -154,6 +154,21 @@ export async function deleteGalleryPhoto(mediaId: string) {
 
     await prisma.media.delete({ where: { id: mediaId } });
 
+    // If this belonged to the auto-created notes container, clean it up when empty
+    const parentEvent = await prisma.event.findUnique({
+      where: { id: media.eventId },
+      select: { id: true, description: true },
+    });
+    if (parentEvent?.description === NOTES_EVENT_TAG) {
+      const remaining = await prisma.media.count({ where: { eventId: parentEvent.id } });
+      if (remaining === 0) {
+        await prisma.event.update({
+          where: { id: parentEvent.id },
+          data: { deletedAt: new Date() },
+        });
+      }
+    }
+
     revalidatePath("/memories");
     revalidatePath("/home");
 
