@@ -441,7 +441,6 @@ export async function getVideoUploadSignature() {
     const params: Record<string, string | number> = {
       timestamp,
       folder: VIDEO_FOLDER,
-      resource_type: "video",
     };
     const signature = generateSignature(params);
 

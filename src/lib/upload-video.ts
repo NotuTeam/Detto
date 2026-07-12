@@ -52,7 +52,12 @@ export function uploadVideoDirect(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText) as CloudinaryVideoResult);
       } else {
-        reject(new Error(`Upload failed (${xhr.status})`));
+        let detail = `Upload failed (${xhr.status})`;
+        try {
+          const body = JSON.parse(xhr.responseText);
+          if (body.error?.message) detail = body.error.message;
+        } catch { /* ignore parse errors */ }
+        reject(new Error(detail));
       }
     });
 
