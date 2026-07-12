@@ -30,6 +30,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Avatar } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import {
@@ -389,19 +390,11 @@ export function EventDetailSheet({
                       key={c.id}
                       className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
                     >
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-[0.7rem] font-bold"
-                        style={{
-                          background: isMe
-                            ? "var(--accent)"
-                            : "var(--surface-alt)",
-                          color: isMe
-                            ? "var(--text-on-accent)"
-                            : "var(--text-secondary)",
-                        }}
-                      >
-                        {c.user.displayName.charAt(0).toUpperCase()}
-                      </div>
+                      <Avatar
+                        src={c.user.avatarUrl}
+                        name={c.user.displayName}
+                        size="sm"
+                      />
                       <div
                         className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}
                       >
