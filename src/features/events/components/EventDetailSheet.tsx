@@ -202,6 +202,7 @@ export function EventDetailSheet({
           url: result.data!.url,
           caption: null,
           mimeType: file.type,
+          thumbnailUrl: null,
           uploadedBy: currentUserId || "",
         },
         ...prev,
