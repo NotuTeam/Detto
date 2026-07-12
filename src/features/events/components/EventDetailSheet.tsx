@@ -514,21 +514,19 @@ export function EventDetailSheet({
                 onChange={handleUpload}
                 className="hidden"
               />
-              {media.length === 0 && (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
-                  style={{ color: "var(--accent)" }}
-                >
-                  {uploading ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Camera size={14} />
-                  )}
-                  Add Photo
-                </button>
-              )}
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
+                style={{ color: "var(--accent)" }}
+              >
+                {uploading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Camera size={14} />
+                )}
+                Add Photo
+              </button>
             </div>
 
             {media.length > 0 ? (
@@ -566,34 +564,18 @@ export function EventDetailSheet({
                   )}
                 </div>
 
-                {/* Remaining photos (max 3 visible) */}
-                {media.slice(1, 4).map((m, i) => (
+                {/* Remaining photos (all) */}
+                {media.slice(1).map((m) => (
                   <div
                     key={m.id}
                     className="relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer group"
                     onClick={() => setPreviewUrl(m.url)}
                   >
-                    {i === 2 && media.length > 4 ? (
-                      /* Last visible slot with count overlay */
-                      <div className="relative w-full h-full">
-                        <img
-                          src={m.url}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white text-[1.1rem] font-bold">
-                            +{media.length - 3}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <img
-                        src={m.url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+                    <img
+                      src={m.url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                     {/* Uploader label */}
                     <div className="absolute inset-x-0 bottom-0 p-1.5 bg-gradient-to-t from-black/50 to-transparent">
                       <span className="text-[0.55rem] text-white/80">
@@ -614,26 +596,24 @@ export function EventDetailSheet({
                   </div>
                 ))}
 
-                {/* Add button fills the next empty bento slot */}
-                {media.length < 4 && (
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                    style={{
-                      background: "var(--surface-alt)",
-                      border: "1.5px dashed var(--border-subtle)",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {uploading ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <Camera size={18} />
-                    )}
-                    <span className="text-[0.65rem] font-medium">Add</span>
-                  </button>
-                )}
+                {/* Add button always available */}
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  style={{
+                    background: "var(--surface-alt)",
+                    border: "1.5px dashed var(--border-subtle)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  {uploading ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Camera size={18} />
+                  )}
+                  <span className="text-[0.65rem] font-medium">Add</span>
+                </button>
               </div>
             ) : (
               /* Empty state dropzone */
