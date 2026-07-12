@@ -582,26 +582,13 @@ export function EventDetailSheet({
               />
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading || videoProgress !== null}
-                  className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
-                  style={{ color: "var(--accent)" }}
-                >
-                  {uploading ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Camera size={14} />
-                  )}
-                  Add Photo
-                </button>
-                <button
                   onClick={() => videoRef.current?.click()}
                   disabled={uploading || videoProgress !== null}
                   className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
                   style={{ color: "var(--accent)" }}
                 >
                   <Video size={14} />
-                  Add Video
+                  Add
                 </button>
               </div>
             </div>
@@ -713,14 +700,24 @@ export function EventDetailSheet({
                   color: "var(--text-secondary)",
                 }}
               >
-                <Loader2 size={24} className="animate-spin" style={{ color: "var(--accent)" }} />
+                <Loader2
+                  size={24}
+                  className="animate-spin"
+                  style={{ color: "var(--accent)" }}
+                />
                 <span className="text-[0.85rem] font-medium">
                   Uploading video... {videoProgress}%
                 </span>
-                <div className="w-3/4 rounded-full overflow-hidden" style={{ background: "var(--border-subtle)" }}>
+                <div
+                  className="w-3/4 rounded-full overflow-hidden"
+                  style={{ background: "var(--border-subtle)" }}
+                >
                   <div
                     className="h-1.5 rounded-full transition-all duration-300"
-                    style={{ width: `${videoProgress}%`, background: "var(--accent)" }}
+                    style={{
+                      width: `${videoProgress}%`,
+                      background: "var(--accent)",
+                    }}
                   />
                 </div>
               </div>
@@ -843,13 +840,7 @@ export function EventDetailSheet({
 
 /* ── Media thumbnail (image or video with play overlay) ────── */
 
-function MediaThumb({
-  media,
-  large,
-}: {
-  media: EventMedia;
-  large?: boolean;
-}) {
+function MediaThumb({ media, large }: { media: EventMedia; large?: boolean }) {
   const isVideo = media.mimeType.startsWith("video/");
 
   if (isVideo) {
@@ -880,7 +871,5 @@ function MediaThumb({
     );
   }
 
-  return (
-    <img src={media.url} alt="" className="w-full h-full object-cover" />
-  );
+  return <img src={media.url} alt="" className="w-full h-full object-cover" />;
 }
