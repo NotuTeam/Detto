@@ -5,8 +5,11 @@ import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
 import { validateFileSize } from "@/lib/utils";
 import { createEventSchema, updateEventSchema, type CreateEventInput, type UpdateEventInput } from "../schemas";
-import { cloudinary } from "@/lib/cloudinary";
+import { cloudinary, generateSignature } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
+
+const VIDEO_MAX_SIZE_MB = 40;
+const VIDEO_FOLDER = "detto/events";
 
 /** Parse "YYYY-MM-DD" into a Date at noon UTC to avoid timezone drift. */
 function parseDateNoonUTC(dateStr: string): Date {
@@ -219,7 +222,7 @@ export async function getEventMedia(eventId: string) {
     const media = await prisma.media.findMany({
       where: { eventId },
       orderBy: { createdAt: "desc" },
-      select: { id: true, url: true, caption: true, mimeType: true, uploadedBy: true, uploader: { select: { id: true, displayName: true } } },
+      select: { id: true, url: true, caption: true, mimeType: true, thumbnailUrl: true, uploadedBy: true, uploader: { select: { id: true, displayName: true } } },
     });
 
     return { success: true, data: media };
@@ -423,6 +426,74 @@ export async function deleteEventComment(commentId: string) {
     return { success: true };
   } catch (err) {
     console.error("deleteEventComment error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+// ── Direct Video Upload (signed) ──────────────────────────────
+
+export async function getVideoUploadSignature() {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder: VIDEO_FOLDER,
+      resource_type: "video",
+    };
+    const signature = generateSignature(params);
+
+    return {
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder: VIDEO_FOLDER,
+      },
+    };
+  } catch (err) {
+    console.error("getVideoUploadSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+export async function saveEventMedia(input: {
+  eventId: string;
+  url: string;
+  publicId: string;
+  mimeType: string;
+  size: number;
+  thumbnailUrl?: string | null;
+}) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const event = await prisma.event.findUnique({ where: { id: input.eventId, deletedAt: null } });
+    if (!event) return { success: false, error: { code: "NOT_FOUND" } };
+
+    const media = await prisma.media.create({
+      data: {
+        eventId: input.eventId,
+        uploadedBy: session.user.id,
+        publicId: input.publicId,
+        url: input.url,
+        thumbnailUrl: input.thumbnailUrl || null,
+        mimeType: input.mimeType,
+        size: input.size,
+      },
+    });
+
+    revalidatePath("/events");
+    revalidatePath("/calendar");
+
+    return { success: true, data: { id: media.id, url: media.url } };
+  } catch (err) {
+    console.error("saveEventMedia error:", err);
     return { success: false, error: { code: "INTERNAL_ERROR" } };
   }
 }

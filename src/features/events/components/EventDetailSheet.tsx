@@ -21,6 +21,8 @@ import {
   Trash2,
   Edit3,
   Camera,
+  Video,
+  Play,
   X,
   Loader2,
   ExternalLink,
@@ -41,8 +43,11 @@ import {
   getEventComments,
   addEventComment,
   deleteEventComment,
+  getVideoUploadSignature,
+  saveEventMedia,
 } from "../actions";
 import { compressImage } from "@/lib/compress-image";
+import { uploadVideoDirect } from "@/lib/upload-video";
 import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
 import type { EventItem } from "./EventCard";
 
@@ -89,6 +94,7 @@ interface EventMedia {
   url: string;
   caption: string | null;
   mimeType: string;
+  thumbnailUrl: string | null;
   uploadedBy: string;
   uploader?: { id: string; displayName: string };
 }
@@ -126,8 +132,10 @@ export function EventDetailSheet({
   const [sendingComment, setSendingComment] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [videoProgress, setVideoProgress] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isOpen || !event) return;
@@ -202,6 +210,63 @@ export function EventDetailSheet({
     setUploading(false);
     setUploadStep(null);
     if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !event) return;
+
+    if (file.size > 40 * 1024 * 1024) {
+      toast.error("Video must be under 40MB");
+      if (videoRef.current) videoRef.current.value = "";
+      return;
+    }
+
+    setVideoProgress(0);
+    try {
+      const sigResult = await getVideoUploadSignature();
+      if (!sigResult.success || !sigResult.data) {
+        toast.error("Failed to prepare upload");
+        return;
+      }
+
+      const result = await uploadVideoDirect(file, sigResult.data, (pct) =>
+        setVideoProgress(pct),
+      );
+
+      // Derive thumbnail URL from the video's public_id
+      const thumbUrl = result.secure_url.replace(
+        /\.(mp4|webm|mov|avi|mkv)$/i,
+        ".jpg",
+      );
+
+      const saveResult = await saveEventMedia({
+        eventId: event.id,
+        url: result.secure_url,
+        publicId: result.public_id,
+        mimeType: file.type,
+        size: result.bytes,
+        thumbnailUrl: thumbUrl,
+      });
+
+      if (saveResult.success && saveResult.data) {
+        setMedia((prev) => [
+          {
+            id: saveResult.data!.id,
+            url: result.secure_url,
+            caption: null,
+            mimeType: file.type,
+            thumbnailUrl: thumbUrl,
+            uploadedBy: currentUserId || "",
+          },
+          ...prev,
+        ]);
+      }
+    } catch {
+      toast.error("Video upload failed. Please try again.");
+    }
+    setVideoProgress(null);
+    if (videoRef.current) videoRef.current.value = "";
   };
 
   const handleDeleteMedia = async (mediaId: string) => {
@@ -507,19 +572,37 @@ export function EventDetailSheet({
                 onChange={handleUpload}
                 className="hidden"
               />
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
-                style={{ color: "var(--accent)" }}
-              >
-                {uploading ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Camera size={14} />
-                )}
-                Add Photo
-              </button>
+              <input
+                ref={videoRef}
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading || videoProgress !== null}
+                  className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
+                  style={{ color: "var(--accent)" }}
+                >
+                  {uploading ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Camera size={14} />
+                  )}
+                  Add Photo
+                </button>
+                <button
+                  onClick={() => videoRef.current?.click()}
+                  disabled={uploading || videoProgress !== null}
+                  className="flex items-center gap-1.5 text-[0.78rem] font-medium cursor-pointer disabled:opacity-50 transition-colors"
+                  style={{ color: "var(--accent)" }}
+                >
+                  <Video size={14} />
+                  Add Video
+                </button>
+              </div>
             </div>
 
             {media.length > 0 ? (
@@ -528,16 +611,12 @@ export function EventDetailSheet({
                 className="grid grid-cols-2 gap-2"
                 style={{ gridAutoRows: "120px" }}
               >
-                {/* First photo: large (spans 2 rows) */}
+                {/* First media: large (spans 2 rows) */}
                 <div
                   className="relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer group row-span-2"
                   onClick={() => setPreviewUrl(media[0].url)}
                 >
-                  <img
-                    src={media[0].url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
+                  <MediaThumb media={media[0]} large />
                   {/* Uploader label */}
                   <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/50 to-transparent">
                     <span className="text-[0.6rem] text-white/80">
@@ -557,18 +636,14 @@ export function EventDetailSheet({
                   )}
                 </div>
 
-                {/* Remaining photos (all) */}
+                {/* Remaining media (all) */}
                 {media.slice(1).map((m) => (
                   <div
                     key={m.id}
                     className="relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer group"
                     onClick={() => setPreviewUrl(m.url)}
                   >
-                    <img
-                      src={m.url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <MediaThumb media={m} />
                     {/* Uploader label */}
                     <div className="absolute inset-x-0 bottom-0 p-1.5 bg-gradient-to-t from-black/50 to-transparent">
                       <span className="text-[0.55rem] text-white/80">
@@ -589,24 +664,64 @@ export function EventDetailSheet({
                   </div>
                 ))}
 
-                {/* Add button always available */}
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className="rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                  style={{
-                    background: "var(--surface-alt)",
-                    border: "1.5px dashed var(--border-subtle)",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  {uploading ? (
+                {/* Video upload progress */}
+                {videoProgress !== null && (
+                  <div
+                    className="rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-2"
+                    style={{
+                      background: "var(--surface-alt)",
+                      border: "1.5px dashed var(--border-subtle)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
                     <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <Camera size={18} />
-                  )}
-                  <span className="text-[0.65rem] font-medium">Add</span>
-                </button>
+                    <span className="text-[0.65rem] font-medium">
+                      Uploading {videoProgress}%
+                    </span>
+                  </div>
+                )}
+
+                {/* Add button always available */}
+                {videoProgress === null && (
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    style={{
+                      background: "var(--surface-alt)",
+                      border: "1.5px dashed var(--border-subtle)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {uploading ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Camera size={18} />
+                    )}
+                    <span className="text-[0.65rem] font-medium">Add</span>
+                  </button>
+                )}
+              </div>
+            ) : videoProgress !== null ? (
+              /* Video uploading with no existing media */
+              <div
+                className="w-full rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-3 py-8"
+                style={{
+                  background: "var(--surface-alt)",
+                  border: "1.5px dashed var(--border-subtle)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <Loader2 size={24} className="animate-spin" style={{ color: "var(--accent)" }} />
+                <span className="text-[0.85rem] font-medium">
+                  Uploading video... {videoProgress}%
+                </span>
+                <div className="w-3/4 rounded-full overflow-hidden" style={{ background: "var(--border-subtle)" }}>
+                  <div
+                    className="h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${videoProgress}%`, background: "var(--accent)" }}
+                  />
+                </div>
               </div>
             ) : (
               /* Empty state dropzone */
@@ -626,7 +741,7 @@ export function EventDetailSheet({
                   <Camera size={20} />
                 )}
                 <span className="text-[0.78rem] font-medium">
-                  No photos yet — add some from this moment
+                  No memories yet — add some from this moment
                 </span>
               </button>
             )}
@@ -661,7 +776,7 @@ export function EventDetailSheet({
           </div>
         </div>
 
-        {/* Full-screen image preview */}
+        {/* Full-screen media preview */}
         {previewUrl && (
           <>
             <div
@@ -680,7 +795,7 @@ export function EventDetailSheet({
                         const obj = URL.createObjectURL(blob);
                         const a = document.createElement("a");
                         a.href = obj;
-                        a.download = "photo";
+                        a.download = "media";
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
@@ -701,11 +816,20 @@ export function EventDetailSheet({
                   </button>
                 </div>
                 <div className="rounded-[var(--radius-lg)] overflow-hidden">
-                  <img
-                    src={previewUrl}
-                    alt=""
-                    className="w-full max-h-[75vh] object-contain"
-                  />
+                  {previewUrl.match(/\.(mp4|webm|mov|avi|mkv)(\?|$)/i) ? (
+                    <video
+                      src={previewUrl}
+                      controls
+                      autoPlay
+                      className="w-full max-h-[75vh] object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={previewUrl}
+                      alt=""
+                      className="w-full max-h-[75vh] object-contain"
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -713,5 +837,49 @@ export function EventDetailSheet({
         )}
       </BottomSheet>
     </>
+  );
+}
+
+/* ── Media thumbnail (image or video with play overlay) ────── */
+
+function MediaThumb({
+  media,
+  large,
+}: {
+  media: EventMedia;
+  large?: boolean;
+}) {
+  const isVideo = media.mimeType.startsWith("video/");
+
+  if (isVideo) {
+    return (
+      <>
+        <img
+          src={media.thumbnailUrl || undefined}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="rounded-full flex items-center justify-center"
+            style={{
+              background: "rgba(0,0,0,0.5)",
+              width: large ? 44 : 32,
+              height: large ? 44 : 32,
+            }}
+          >
+            <Play
+              size={large ? 20 : 16}
+              fill="white"
+              className="text-white ml-0.5"
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <img src={media.url} alt="" className="w-full h-full object-cover" />
   );
 }
