@@ -29,6 +29,7 @@ import {
   Send,
   type LucideIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import {
@@ -158,6 +159,8 @@ export function EventDetailSheet({
     if (result.success && result.data) {
       setComments((prev) => [...prev, result.data as EventComment]);
       setCommentText("");
+    } else {
+      toast.error("Failed to add note. Please try again.");
     }
     setSendingComment(false);
   };
