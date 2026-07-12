@@ -34,7 +34,13 @@ export function MiniGallery({ photos, className }: MiniGalleryProps) {
 
   return (
     <Link href="/memories" className="block">
-      <div className={cn("relative w-full aspect-[16/10] rounded-[var(--radius-lg)] overflow-hidden", className)} style={{ background: "var(--surface-alt)" }}>
+      <div
+        className={cn(
+          "relative w-full aspect-[10/16] rounded-[var(--radius-lg)] overflow-hidden",
+          className,
+        )}
+        style={{ background: "var(--surface-alt)" }}
+      >
         <AnimatePresence mode="wait">
           <motion.img
             key={photos[current].id}
@@ -59,7 +65,9 @@ export function MiniGallery({ photos, className }: MiniGalleryProps) {
         {/* Caption */}
         {photos[current].caption && (
           <div className="absolute bottom-3 left-3 right-16">
-            <p className="text-[0.8rem] text-white font-medium truncate">{photos[current].caption}</p>
+            <p className="text-[0.8rem] text-white font-medium truncate">
+              {photos[current].caption}
+            </p>
           </div>
         )}
 
@@ -69,12 +77,19 @@ export function MiniGallery({ photos, className }: MiniGalleryProps) {
             {photos.map((_, i) => (
               <button
                 key={i}
-                onClick={(e) => { e.preventDefault(); setCurrent(i); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrent(i);
+                }}
                 className={cn(
                   "rounded-full transition-all duration-300 cursor-pointer",
-                  i === current ? "w-5 h-2" : "w-2 h-2 bg-white/40 hover:bg-white/60"
+                  i === current
+                    ? "w-5 h-2"
+                    : "w-2 h-2 bg-white/40 hover:bg-white/60",
                 )}
-                style={i === current ? { background: "var(--accent)" } : undefined}
+                style={
+                  i === current ? { background: "var(--accent)" } : undefined
+                }
               />
             ))}
           </div>
