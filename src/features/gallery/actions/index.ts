@@ -12,6 +12,7 @@ export interface GalleryPhoto {
   url: string;
   caption: string | null;
   mimeType: string;
+  thumbnailUrl: string | null;
   uploadedBy: string;
   createdAt: string;
   displayDate: string;
@@ -53,6 +54,7 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
         url: true,
         caption: true,
         mimeType: true,
+        thumbnailUrl: true,
         uploadedBy: true,
         createdAt: true,
         event: {

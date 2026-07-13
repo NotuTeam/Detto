@@ -5,11 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { Play } from "lucide-react";
 
 interface Photo {
   id: string;
   url: string;
   caption?: string | null;
+  mimeType?: string;
+  thumbnailUrl?: string | null;
 }
 
 interface MiniGalleryProps {
@@ -32,6 +35,11 @@ export function MiniGallery({ photos, className }: MiniGalleryProps) {
 
   if (photos.length === 0) return null;
 
+  const isCurrentVideo = photos[current].mimeType?.startsWith("video/");
+  const currentSrc = isCurrentVideo
+    ? (photos[current].thumbnailUrl || photos[current].url)
+    : photos[current].url;
+
   return (
     <Link href="/memories" className="block">
       <div
@@ -44,7 +52,7 @@ export function MiniGallery({ photos, className }: MiniGalleryProps) {
         <AnimatePresence mode="wait">
           <motion.img
             key={photos[current].id}
-            src={photos[current].url}
+            src={currentSrc}
             alt={photos[current].caption || ""}
             className="absolute inset-0 w-full h-full object-cover"
             initial={{ opacity: 0, scale: 1.05 }}
@@ -53,6 +61,15 @@ export function MiniGallery({ photos, className }: MiniGalleryProps) {
             transition={{ duration: 0.6, ease: "easeInOut" }}
           />
         </AnimatePresence>
+
+        {/* Video play overlay */}
+        {isCurrentVideo && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)", width: 44, height: 44 }}>
+              <Play size={20} fill="white" className="text-white ml-0.5" />
+            </div>
+          </div>
+        )}
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

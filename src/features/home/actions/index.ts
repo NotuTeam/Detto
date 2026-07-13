@@ -52,7 +52,7 @@ export async function getDashboardData() {
       where: { event: { relationshipId: relationship.id, deletedAt: null } },
       orderBy: { createdAt: "desc" },
       take: 100,
-      select: { id: true, url: true, caption: true },
+      select: { id: true, url: true, caption: true, mimeType: true, thumbnailUrl: true },
     }),
     prisma.event.count({
       where: { relationshipId: relationship.id, deletedAt: null },

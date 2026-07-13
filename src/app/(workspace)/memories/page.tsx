@@ -20,6 +20,7 @@ import {
   Users,
   Pin,
   Download,
+  Play,
   Music,
   Dumbbell,
   Gamepad2,
@@ -62,6 +63,7 @@ interface Photo {
   url: string;
   caption: string | null;
   mimeType: string;
+  thumbnailUrl: string | null;
   uploadedBy: string;
   createdAt: string;
   displayDate: string;
@@ -224,6 +226,7 @@ export default function GalleryPage() {
           >
             {photos.map((photo, i) => {
               const isTall = i % 5 === 0;
+              const isVideo = photo.mimeType.startsWith("video/");
               return (
                 <div
                   key={photo.id}
@@ -234,10 +237,17 @@ export default function GalleryPage() {
                   onClick={() => setPreviewIndex(i)}
                 >
                   <img
-                    src={photo.url}
+                    src={isVideo ? (photo.thumbnailUrl || photo.url) : photo.url}
                     alt={photo.caption || ""}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
+                  {isVideo && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)", width: 36, height: 36 }}>
+                        <Play size={16} fill="white" className="text-white ml-0.5" />
+                      </div>
+                    </div>
+                  )}
                   {/* Bottom gradient with event info + date */}
                   <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
                     <div className="flex items-center gap-1">
@@ -316,13 +326,22 @@ export default function GalleryPage() {
               </button>
             </div>
 
-            {/* Image */}
+            {/* Media */}
             <div className="flex-1 flex items-center justify-center px-4 pointer-events-auto">
-              <img
-                src={currentPhoto.url}
-                alt={currentPhoto.caption || ""}
-                className="max-h-[65vh] max-w-full object-contain rounded-[var(--radius-md)]"
-              />
+              {currentPhoto.mimeType.startsWith("video/") ? (
+                <video
+                  src={currentPhoto.url}
+                  controls
+                  autoPlay
+                  className="max-h-[65vh] max-w-full object-contain rounded-[var(--radius-md)]"
+                />
+              ) : (
+                <img
+                  src={currentPhoto.url}
+                  alt={currentPhoto.caption || ""}
+                  className="max-h-[65vh] max-w-full object-contain rounded-[var(--radius-md)]"
+                />
+              )}
             </div>
 
             {/* Caption + nav */}
