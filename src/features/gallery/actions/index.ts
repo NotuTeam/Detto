@@ -3,9 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
-import { validateFileSize } from "@/lib/utils";
-import { cloudinary } from "@/lib/cloudinary";
+import { cloudinary, generateSignature } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
+
+const GALLERY_FOLDER = "detto/gallery";
 
 export interface GalleryPhoto {
   id: string;
@@ -102,29 +103,61 @@ export async function getGalleryPhotos(cursor?: string, limit = 20) {
   }
 }
 
-export async function uploadGalleryPhoto(eventId: string, file: File) {
+/** Signed signature for direct image uploads to the gallery folder. */
+export async function getGalleryPhotoSignature() {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "detto/gallery",
-      resource_type: "image",
-    });
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder: GALLERY_FOLDER,
+    };
+    const signature = generateSignature(params);
+
+    return {
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder: GALLERY_FOLDER,
+        resourceType: "image" as const,
+      },
+    };
+  } catch (err) {
+    console.error("getGalleryPhotoSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+/** Save metadata for an already-uploaded gallery photo. */
+export async function saveGalleryPhoto(input: {
+  eventId: string;
+  url: string;
+  publicId: string;
+  mimeType: string;
+  size: number;
+  caption?: string | null;
+}) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
     const media = await prisma.media.create({
       data: {
-        eventId,
+        eventId: input.eventId,
         uploadedBy: session.user.id,
-        publicId: result.public_id,
-        url: result.secure_url,
-        mimeType: file.type,
-        size: file.size,
+        publicId: input.publicId,
+        url: input.url,
+        mimeType: input.mimeType,
+        size: input.size,
+        caption: input.caption || null,
       },
     });
 
@@ -133,8 +166,8 @@ export async function uploadGalleryPhoto(eventId: string, file: File) {
 
     return { success: true, data: { id: media.id, url: media.url } };
   } catch (err) {
-    console.error("uploadGalleryPhoto error:", err);
-    return { success: false, error: { code: "UPLOAD_FAILED" } };
+    console.error("saveGalleryPhoto error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
   }
 }
 

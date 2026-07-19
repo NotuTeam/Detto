@@ -4,9 +4,10 @@ import { useState, useRef, useCallback } from "react";
 import { Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
-import { createNote, uploadNoteImage } from "../actions";
-import { compressImage } from "@/lib/compress-image";
-import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
+import { createNote, getNoteImageSignature } from "../actions";
+import { uploadAssetDirect, IMAGE_MAX_SIZE_MB, validateUploadSize } from "@/lib/upload-asset";
+import { UploadOverlay } from "@/components/ui/UploadOverlay";
+import { toast } from "sonner";
 
 interface NoteComposerProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imagePublicId, setImagePublicId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -40,18 +41,34 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      setUploading(true);
-      setUploadStep("compressing");
 
-      const compressed = await compressImage(file).catch(() => file);
-      setUploadStep("uploading");
-      const result = await uploadNoteImage(compressed);
-      if (result.success && result.data) {
-        setImageUrl(result.data.url);
-        setImagePublicId(result.data.publicId);
+      const sizeError = validateUploadSize(file, IMAGE_MAX_SIZE_MB);
+      if (sizeError) {
+        toast.error(sizeError);
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
+
+      setUploading(true);
+      setUploadProgress(0);
+      try {
+        const sigResult = await getNoteImageSignature();
+        if (!sigResult.success || !sigResult.data) {
+          toast.error("Failed to prepare upload");
+          setUploading(false);
+          setUploadProgress(null);
+          return;
+        }
+        const result = await uploadAssetDirect(file, sigResult.data, "image", (pct) =>
+          setUploadProgress(pct),
+        );
+        setImageUrl(result.secure_url);
+        setImagePublicId(result.public_id);
+      } catch {
+        toast.error("Image upload failed. Please try again.");
       }
       setUploading(false);
-      setUploadStep(null);
+      setUploadProgress(null);
       if (fileRef.current) fileRef.current.value = "";
     },
     [],
@@ -77,7 +94,7 @@ export function NoteComposer({ isOpen, onClose, onCreated }: NoteComposerProps) 
 
   return (
     <BottomSheet isOpen={isOpen} onClose={handleClose} title="Leave a Note">
-      <UploadOverlay step={uploadStep} />
+      <UploadOverlay progress={uploadProgress} />
       <div className="flex flex-col gap-4">
         {/* Image preview */}
         {imageUrl && (

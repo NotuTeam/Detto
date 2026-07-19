@@ -37,18 +37,16 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import {
   getEventMedia,
-  uploadEventMedia,
   deleteEventMedia,
   getWishlistItemForEvent,
   getEventComments,
   addEventComment,
   deleteEventComment,
-  getVideoUploadSignature,
+  getEventMediaSignature,
   saveEventMedia,
 } from "../actions";
-import { compressImage } from "@/lib/compress-image";
-import { uploadVideoDirect } from "@/lib/upload-video";
-import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
+import { uploadAssetDirect, IMAGE_MAX_SIZE_MB, VIDEO_MAX_SIZE_MB, validateUploadSize } from "@/lib/upload-asset";
+import { UploadOverlay } from "@/components/ui/UploadOverlay";
 import type { EventItem } from "./EventCard";
 
 interface WishlistEventData {
@@ -131,7 +129,7 @@ export function EventDetailSheet({
   const [commentText, setCommentText] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [videoProgress, setVideoProgress] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -190,26 +188,55 @@ export function EventDetailSheet({
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const sizeError = validateUploadSize(file, IMAGE_MAX_SIZE_MB);
+    if (sizeError) {
+      toast.error(sizeError);
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
-    setUploadStep("compressing");
-    const compressed = await compressImage(file).catch(() => file);
-    setUploadStep("uploading");
-    const result = await uploadEventMedia(event.id, compressed);
-    if (result.success && result.data) {
-      setMedia((prev) => [
-        {
-          id: result.data!.id,
-          url: result.data!.url,
-          caption: null,
-          mimeType: file.type,
-          thumbnailUrl: null,
-          uploadedBy: currentUserId || "",
-        },
-        ...prev,
-      ]);
+    setUploadProgress(0);
+    try {
+      const sigResult = await getEventMediaSignature("image");
+      if (!sigResult.success || !sigResult.data) {
+        toast.error("Failed to prepare upload");
+        setUploading(false);
+        setUploadProgress(null);
+        return;
+      }
+
+      const result = await uploadAssetDirect(file, sigResult.data, "image", (pct) =>
+        setUploadProgress(pct),
+      );
+
+      const saveResult = await saveEventMedia({
+        eventId: event.id,
+        url: result.secure_url,
+        publicId: result.public_id,
+        mimeType: file.type,
+        size: result.bytes,
+      });
+
+      if (saveResult.success && saveResult.data) {
+        setMedia((prev) => [
+          {
+            id: saveResult.data!.id,
+            url: result.secure_url,
+            caption: null,
+            mimeType: file.type,
+            thumbnailUrl: null,
+            uploadedBy: currentUserId || "",
+          },
+          ...prev,
+        ]);
+      }
+    } catch {
+      toast.error("Image upload failed. Please try again.");
     }
     setUploading(false);
-    setUploadStep(null);
+    setUploadProgress(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -217,21 +244,22 @@ export function EventDetailSheet({
     const file = e.target.files?.[0];
     if (!file || !event) return;
 
-    if (file.size > 40 * 1024 * 1024) {
-      toast.error("Video must be under 40MB");
+    const sizeError = validateUploadSize(file, VIDEO_MAX_SIZE_MB);
+    if (sizeError) {
+      toast.error(sizeError);
       if (videoRef.current) videoRef.current.value = "";
       return;
     }
 
     setVideoProgress(0);
     try {
-      const sigResult = await getVideoUploadSignature();
+      const sigResult = await getEventMediaSignature("video");
       if (!sigResult.success || !sigResult.data) {
         toast.error("Failed to prepare upload");
         return;
       }
 
-      const result = await uploadVideoDirect(file, sigResult.data, (pct) =>
+      const result = await uploadAssetDirect(file, sigResult.data, "video", (pct) =>
         setVideoProgress(pct),
       );
 
@@ -278,7 +306,7 @@ export function EventDetailSheet({
 
   return (
     <>
-      <UploadOverlay step={uploadStep} />
+      <UploadOverlay progress={uploadProgress ?? videoProgress} />
       <BottomSheet isOpen={isOpen} onClose={onClose} title="Event Details">
         <div className="flex flex-col gap-5">
           {/* Event Info Card — large bg icon on left, content overlaid */}

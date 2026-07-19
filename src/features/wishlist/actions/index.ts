@@ -3,11 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
-import { validateFileSize } from "@/lib/utils";
 import { createWishlistSchema, updateWishlistSchema, type CreateWishlistInput, type UpdateWishlistInput } from "../schemas";
-import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
+import { deleteFromCloudinaryByUrl, generateSignature } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 import { EVENT_CATEGORIES } from "@/config/constants";
+
+const WISHLIST_IMAGE_FOLDER = "detto/wishlist";
 
 function parseLinks(val: string | null): string[] {
   if (!val) return [];
@@ -209,25 +210,33 @@ export async function toggleFavourite(itemId: string) {
   }
 }
 
-export async function uploadWishlistImage(file: File) {
+/** Signed signature for direct wishlist image uploads. */
+export async function getWishlistImageSignature() {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder: WISHLIST_IMAGE_FOLDER,
+    };
+    const signature = generateSignature(params);
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "detto/wishlist",
-      resource_type: "image",
-    });
-
-    return { success: true, data: { url: result.secure_url } };
+    return {
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder: WISHLIST_IMAGE_FOLDER,
+        resourceType: "image" as const,
+      },
+    };
   } catch (err) {
-    console.error("uploadWishlistImage error:", err);
-    return { success: false, error: { code: "UPLOAD_FAILED" } };
+    console.error("getWishlistImageSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
   }
 }
 

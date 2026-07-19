@@ -7,11 +7,13 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { INVITATION_EXPIRY_DAYS } from "@/config/constants";
-import { generateShortCode, validateFileSize } from "@/lib/utils";
+import { generateShortCode } from "@/lib/utils";
 import { generateAutoEventsForRelationship, updateAutoEventDateForYear } from "@/lib/auto-events";
 import { revalidatePath } from "next/cache";
 import { sendPushNotification } from "@/lib/push";
-import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
+import { deleteFromCloudinaryByUrl, generateSignature } from "@/lib/cloudinary";
+
+const BANNER_FOLDER = "detto/relationship-banners";
 
 export async function createRelationship(input: CreateRelationshipInput) {
   try {
@@ -339,40 +341,63 @@ export async function ensureInvitation() {
   }
 }
 
-export async function uploadBanner(file: File) {
+/** Signed signature for direct banner image uploads. */
+export async function getBannerSignature() {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
     const relationship = await getCurrentRelationship();
     if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder: BANNER_FOLDER,
+    };
+    const signature = generateSignature(params);
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "detto/relationship-banners",
-      resource_type: "image",
-    });
+    return {
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder: BANNER_FOLDER,
+        resourceType: "image" as const,
+      },
+    };
+  } catch (err) {
+    console.error("getBannerSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+/** Persist a freshly-uploaded banner URL and delete the previous one. */
+export async function saveBannerUrl(url: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const relationship = await getCurrentRelationship();
+    if (!relationship) return { success: false, error: { code: "NO_RELATIONSHIP" } };
 
     await prisma.relationship.update({
       where: { id: relationship.id },
-      data: { bannerUrl: result.secure_url },
+      data: { bannerUrl: url },
     });
 
-    // Delete old banner from Cloudinary
-    if (relationship.bannerUrl) {
+    if (relationship.bannerUrl && relationship.bannerUrl !== url) {
       await deleteFromCloudinaryByUrl(relationship.bannerUrl);
     }
 
     revalidatePath("/relation");
     revalidatePath("/home");
 
-    return { success: true, data: { url: result.secure_url } };
+    return { success: true, data: { url } };
   } catch (err) {
-    console.error("uploadBanner error:", err);
+    console.error("saveBannerUrl error:", err);
     return { success: false, error: { code: "UPLOAD_FAILED" } };
   }
 }

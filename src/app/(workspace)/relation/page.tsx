@@ -25,13 +25,14 @@ import {
   getCurrentRelationship,
   getPendingInvitation,
   updateRelationship,
-  uploadBanner,
+  getBannerSignature,
+  saveBannerUrl,
   removeBanner,
   createRelationship,
   ensureInvitation,
 } from "@/features/relationship/actions";
-import { compressImage } from "@/lib/compress-image";
-import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
+import { uploadAssetDirect, IMAGE_MAX_SIZE_MB, validateUploadSize } from "@/lib/upload-asset";
+import { UploadOverlay } from "@/components/ui/UploadOverlay";
 
 export default function RelationPage() {
   const user = useUserStore((s) => s.user);
@@ -47,7 +48,7 @@ export default function RelationPage() {
 
   // Banner
   const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
 
   // Nickname edit bottom sheet
@@ -199,14 +200,32 @@ export default function RelationPage() {
   const handleBannerPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const sizeError = validateUploadSize(file, IMAGE_MAX_SIZE_MB);
+    if (sizeError) {
+      alert(sizeError);
+      return;
+    }
+
     setUploadingBanner(true);
-    setUploadStep("compressing");
-    const compressed = await compressImage(file).catch(() => file);
-    setUploadStep("uploading");
-    const result = await uploadBanner(compressed);
-    if (result.success) await loadData();
+    setUploadProgress(0);
+    try {
+      const sigResult = await getBannerSignature();
+      if (!sigResult.success || !sigResult.data) {
+        setUploadingBanner(false);
+        setUploadProgress(null);
+        return;
+      }
+      const result = await uploadAssetDirect(file, sigResult.data, "image", (pct) =>
+        setUploadProgress(pct),
+      );
+      const saveResult = await saveBannerUrl(result.secure_url);
+      if (saveResult.success) await loadData();
+    } catch {
+      /* noop */
+    }
     setUploadingBanner(false);
-    setUploadStep(null);
+    setUploadProgress(null);
     if (bannerRef.current) bannerRef.current.value = "";
   };
 
@@ -475,7 +494,7 @@ export default function RelationPage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-5">
-      <UploadOverlay step={uploadStep} />
+      <UploadOverlay progress={uploadProgress} />
       {/* Header */}
       <div>
         <h1

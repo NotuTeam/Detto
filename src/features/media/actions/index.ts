@@ -2,61 +2,101 @@
 
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
-import { cloudinary } from "@/lib/cloudinary";
-import { validateFileSize } from "@/lib/utils";
+import { generateSignature } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 
-export async function uploadAvatarAction(file: File) {
+const AVATAR_FOLDER = "detto/avatars";
+const GENERIC_IMAGE_FOLDER = "detto/misc";
+
+/** Signed signature for direct avatar image uploads. */
+export async function getAvatarSignature() {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
-    if (!session?.user) return { success: false, error: { code: "UNAUTHORIZED" } };
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder: AVATAR_FOLDER,
+    };
+    const signature = generateSignature(params);
 
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "detto/avatars",
-      resource_type: "image",
+    return {
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder: AVATAR_FOLDER,
+        resourceType: "image" as const,
+      },
+    };
+  } catch (err) {
+    console.error("getAvatarSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+/** Persist a freshly-uploaded avatar URL (deletes the previous one if any). */
+export async function saveAvatarUrl(url: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { avatarUrl: true },
     });
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { avatarUrl: result.secure_url },
+      data: { avatarUrl: url },
     });
+
+    // Best-effort cleanup of old avatar
+    if (user?.avatarUrl && user.avatarUrl !== url) {
+      const { deleteFromCloudinaryByUrl } = await import("@/lib/cloudinary");
+      await deleteFromCloudinaryByUrl(user.avatarUrl).catch(() => {});
+    }
 
     revalidatePath("/home");
     revalidatePath("/relation");
+    revalidatePath("/profile");
 
-    return { success: true, data: { url: result.secure_url, publicId: result.public_id } };
+    return { success: true, data: { url } };
   } catch (err) {
-    console.error("uploadAvatarAction error:", err);
-    return { success: false, error: { code: "UPLOAD_FAILED", message: "Failed to upload photo" } };
+    console.error("saveAvatarUrl error:", err);
+    return { success: false, error: { code: "UPLOAD_FAILED" } };
   }
 }
 
-export async function uploadFileToCloudinary(file: File, folder: string) {
+/** Signed signature for direct image uploads to a generic/misc folder. */
+export async function getGenericImageSignature(folder: string = GENERIC_IMAGE_FOLDER) {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
-    if (!session?.user) return { success: false, error: { code: "UNAUTHORIZED" } };
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
-
-    const result = await cloudinary.uploader.upload(base64, {
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
       folder,
-      resource_type: "image",
-    });
+    };
+    const signature = generateSignature(params);
 
     return {
       success: true,
-      data: { url: result.secure_url, publicId: result.public_id },
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder,
+        resourceType: "image" as const,
+      },
     };
   } catch (err) {
-    console.error("uploadFileToCloudinary error:", err);
-    return { success: false, error: { code: "UPLOAD_FAILED", message: "Failed to upload photo" } };
+    console.error("getGenericImageSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
   }
 }

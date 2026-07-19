@@ -3,21 +3,24 @@
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export type UploadStep = "compressing" | "uploading" | null;
-
 interface UploadOverlayProps {
-  step: UploadStep;
+  /** When set (0-100), shows a percentage progress bar. */
+  progress?: number | null;
+  /** Optional label; defaults derived from progress. */
+  label?: string;
 }
 
-const STEP_LABELS: Record<NonNullable<UploadStep>, string> = {
-  compressing: "Compressing image...",
-  uploading: "Uploading...",
-};
+const DEFAULT_LABEL = "Uploading...";
 
-export function UploadOverlay({ step }: UploadOverlayProps) {
+export function UploadOverlay({ progress, label }: UploadOverlayProps) {
+  const hasProgress = progress !== null && progress !== undefined;
+  const pct = hasProgress ? Math.min(100, Math.max(0, progress!)) : 0;
+  const displayLabel =
+    label ?? (hasProgress ? `Uploading... ${pct}%` : DEFAULT_LABEL);
+
   return (
     <AnimatePresence>
-      {step && (
+      {progress !== null && progress !== undefined && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -27,7 +30,7 @@ export function UploadOverlay({ step }: UploadOverlayProps) {
           style={{ background: "rgba(0,0,0,0.55)" }}
         >
           <div
-            className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl"
+            className="flex flex-col items-center gap-4 px-8 py-6 rounded-2xl min-w-[240px]"
             style={{
               background: "var(--surface)",
               boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
@@ -42,8 +45,20 @@ export function UploadOverlay({ step }: UploadOverlayProps) {
               className="text-[0.9rem] font-medium"
               style={{ color: "var(--text-primary)" }}
             >
-              {STEP_LABELS[step]}
+              {displayLabel}
             </p>
+            <div
+              className="w-full rounded-full overflow-hidden"
+              style={{ background: "var(--border-subtle)" }}
+            >
+              <div
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: `${pct}%`,
+                  background: "var(--accent)",
+                }}
+              />
+            </div>
           </div>
         </motion.div>
       )}

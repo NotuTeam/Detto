@@ -3,14 +3,14 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { getCurrentRelationship } from "@/features/relationship/actions";
-import { validateFileSize } from "@/lib/utils";
 import { createNoteSchema, type CreateNoteInput } from "../schemas";
 import { revalidatePath } from "next/cache";
-import { cloudinary } from "@/lib/cloudinary";
+import { generateSignature } from "@/lib/cloudinary";
 import { sendPushNotification } from "@/lib/push";
 
 const NOTE_TTL_HOURS = 24;
 const NOTES_EVENT_TAG = "[AUTO:NOTES_CONTAINER]";
+const NOTE_IMAGE_FOLDER = "detto/notes";
 
 async function getOrCreateNotesEvent(relationshipId: string, userId: string) {
   const existing = await prisma.event.findFirst({
@@ -209,27 +209,32 @@ export async function deleteNote(noteId: string) {
   }
 }
 
-export async function uploadNoteImage(file: File) {
+/** Signed signature for direct image uploads to the notes folder. */
+export async function getNoteImageSignature() {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
-
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "detto/notes",
-      resource_type: "image",
-    });
+    const timestamp = Math.round(Date.now() / 1000);
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder: NOTE_IMAGE_FOLDER,
+    };
+    const signature = generateSignature(params);
 
     return {
       success: true,
-      data: { url: result.secure_url, publicId: result.public_id },
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder: NOTE_IMAGE_FOLDER,
+        resourceType: "image" as const,
+      },
     };
   } catch (err) {
-    console.error("uploadNoteImage error:", err);
-    return { success: false, error: { code: "UPLOAD_FAILED" } };
+    console.error("getNoteImageSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
   }
 }

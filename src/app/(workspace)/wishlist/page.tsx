@@ -35,12 +35,12 @@ import {
   createWishlistItem,
   deleteWishlistItem,
   toggleFavourite,
-  uploadWishlistImage,
+  getWishlistImageSignature,
   toggleWishlistCheck,
   createEventFromWishlist,
 } from "@/features/wishlist/actions";
-import { compressImage } from "@/lib/compress-image";
-import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
+import { uploadAssetDirect, IMAGE_MAX_SIZE_MB, validateUploadSize } from "@/lib/upload-asset";
+import { UploadOverlay } from "@/components/ui/UploadOverlay";
 
 import Love from "@/assets/illustration/love.svg";
 
@@ -87,7 +87,7 @@ export default function WishlistPage() {
   const [newLink, setNewLink] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [category, setCategory] = useState("DATE");
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
@@ -157,16 +157,31 @@ export default function WishlistPage() {
   const handleImagePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const sizeError = validateUploadSize(file, IMAGE_MAX_SIZE_MB);
+    if (sizeError) {
+      alert(sizeError);
+      return;
+    }
+
     setUploadingImage(true);
-    setUploadStep("compressing");
-    const compressed = await compressImage(file).catch(() => file);
-    setUploadStep("uploading");
-    const result = await uploadWishlistImage(compressed);
-    if (result.success && result.data) {
-      setImageUrls((prev) => [...prev, result.data!.url]);
+    setUploadProgress(0);
+    try {
+      const sigResult = await getWishlistImageSignature();
+      if (!sigResult.success || !sigResult.data) {
+        setUploadingImage(false);
+        setUploadProgress(null);
+        return;
+      }
+      const result = await uploadAssetDirect(file, sigResult.data, "image", (pct) =>
+        setUploadProgress(pct),
+      );
+      setImageUrls((prev) => [...prev, result.secure_url]);
+    } catch {
+      /* noop */
     }
     setUploadingImage(false);
-    setUploadStep(null);
+    setUploadProgress(null);
     if (imageRef.current) imageRef.current.value = "";
   };
 
@@ -237,7 +252,7 @@ export default function WishlistPage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-5">
-      <UploadOverlay step={uploadStep} />
+      <UploadOverlay progress={uploadProgress} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

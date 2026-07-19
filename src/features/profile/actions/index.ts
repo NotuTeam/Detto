@@ -3,11 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/features/auth/actions";
 import { updateProfileSchema, changePasswordSchema, type UpdateProfileInput, type ChangePasswordInput } from "../schemas";
-import { cloudinary, deleteFromCloudinaryByUrl } from "@/lib/cloudinary";
+import { deleteFromCloudinaryByUrl, generateSignature } from "@/lib/cloudinary";
 import { hash, verify } from "argon2";
 import { revalidatePath } from "next/cache";
 import { updateAutoEventDateForYear } from "@/lib/auto-events";
-import { validateFileSize } from "@/lib/utils";
+
+const AVATAR_FOLDER = "detto/avatars";
 
 export async function getProfile() {
   try {
@@ -95,46 +96,63 @@ export async function updateProfile(input: UpdateProfileInput) {
   }
 }
 
-export async function uploadAvatar(file: File) {
+/** Signed signature for direct avatar image uploads (with face-crop transformation hint). */
+export async function getAvatarSignature() {
   try {
-    validateFileSize(file, 1);
     const session = await getSession();
     if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
 
-    // Get current avatar URL to delete later
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = AVATAR_FOLDER;
+    const params: Record<string, string | number> = {
+      timestamp,
+      folder,
+    };
+    const signature = generateSignature(params);
+
+    return {
+      success: true,
+      data: {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY!,
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
+        folder,
+        resourceType: "image" as const,
+      },
+    };
+  } catch (err) {
+    console.error("getAvatarSignature error:", err);
+    return { success: false, error: { code: "INTERNAL_ERROR" } };
+  }
+}
+
+/** Persist a freshly-uploaded avatar URL and delete the previous one. */
+export async function saveAvatarUrl(url: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: { code: "UNAUTHORIZED" } };
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { avatarUrl: true },
     });
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
-
-    const result = await cloudinary.uploader.upload(base64, {
-      folder: "detto/avatars",
-      resource_type: "image",
-      transformation: [
-        { width: 400, height: 400, crop: "fill", gravity: "face" },
-      ],
-    });
-
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { avatarUrl: result.secure_url },
+      data: { avatarUrl: url },
     });
 
-    // Delete old avatar from Cloudinary
-    if (user?.avatarUrl) {
+    if (user?.avatarUrl && user.avatarUrl !== url) {
       await deleteFromCloudinaryByUrl(user.avatarUrl);
     }
 
     revalidatePath("/profile");
     revalidatePath("/home");
 
-    return { success: true, data: { url: result.secure_url } };
+    return { success: true, data: { url } };
   } catch (err) {
-    console.error("uploadAvatar error:", err);
+    console.error("saveAvatarUrl error:", err);
     return { success: false, error: { code: "UPLOAD_FAILED" } };
   }
 }

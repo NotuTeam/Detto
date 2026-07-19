@@ -28,13 +28,14 @@ import {
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
-import { compressImage } from "@/lib/compress-image";
-import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
+import { uploadAssetDirect, IMAGE_MAX_SIZE_MB, validateUploadSize } from "@/lib/upload-asset";
+import { UploadOverlay } from "@/components/ui/UploadOverlay";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { cn } from "@/lib/utils";
 import {
   getGalleryPhotos,
-  uploadGalleryPhoto,
+  getGalleryPhotoSignature,
+  saveGalleryPhoto,
   deleteGalleryPhoto,
   getRelationshipEvents,
 } from "@/features/gallery/actions";
@@ -88,7 +89,7 @@ export default function GalleryPage() {
   const [events, setEvents] = useState<EventOption[]>([]);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -143,18 +144,42 @@ export default function GalleryPage() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedEventId) return;
+
+    const sizeError = validateUploadSize(file, IMAGE_MAX_SIZE_MB);
+    if (sizeError) {
+      alert(sizeError);
+      return;
+    }
+
     setUploading(true);
-    setUploadStep("compressing");
-    const compressed = await compressImage(file).catch(() => file);
-    setUploadStep("uploading");
-    const result = await uploadGalleryPhoto(selectedEventId, compressed);
-    if (result.success) {
-      fetchPhotos();
-      setUploadOpen(false);
-      setSelectedEventId("");
+    setUploadProgress(0);
+    try {
+      const sigResult = await getGalleryPhotoSignature();
+      if (!sigResult.success || !sigResult.data) {
+        setUploading(false);
+        setUploadProgress(null);
+        return;
+      }
+      const result = await uploadAssetDirect(file, sigResult.data, "image", (pct) =>
+        setUploadProgress(pct),
+      );
+      const saveResult = await saveGalleryPhoto({
+        eventId: selectedEventId,
+        url: result.secure_url,
+        publicId: result.public_id,
+        mimeType: file.type,
+        size: result.bytes,
+      });
+      if (saveResult.success) {
+        fetchPhotos();
+        setUploadOpen(false);
+        setSelectedEventId("");
+      }
+    } catch {
+      /* noop */
     }
     setUploading(false);
-    setUploadStep(null);
+    setUploadProgress(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -189,7 +214,7 @@ export default function GalleryPage() {
 
   return (
     <div className="px-4 py-6 flex flex-col gap-5">
-      <UploadOverlay step={uploadStep} />
+      <UploadOverlay progress={uploadProgress} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

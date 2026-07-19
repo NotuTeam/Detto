@@ -21,9 +21,12 @@ import {
   createRelationship,
   joinRelationship,
 } from "@/features/relationship/actions";
-import { uploadAvatarAction } from "@/features/media/actions";
-import { compressImage } from "@/lib/compress-image";
-import { UploadOverlay, type UploadStep } from "@/components/ui/UploadOverlay";
+import {
+  getAvatarSignature,
+  saveAvatarUrl,
+} from "@/features/media/actions";
+import { uploadAssetDirect, IMAGE_MAX_SIZE_MB, validateUploadSize } from "@/lib/upload-asset";
+import { UploadOverlay } from "@/components/ui/UploadOverlay";
 import { toast } from "sonner";
 import { PageBlobs } from "@/components/ui/DecorativeBlobs";
 
@@ -64,7 +67,7 @@ function RegisterContent() {
   const [inputCode, setInputCode] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [uploadStep, setUploadStep] = useState<UploadStep>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [relationSub, setRelationSub] = useState<"choice" | "join" | "code">(
     "choice",
   );
@@ -181,23 +184,36 @@ function RegisterContent() {
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const sizeError = validateUploadSize(file, IMAGE_MAX_SIZE_MB);
+    if (sizeError) {
+      toast.error(sizeError);
+      return;
+    }
+
     setUploadingPhoto(true);
+    setUploadProgress(0);
     try {
-      setUploadStep("compressing");
-      const compressed = await compressImage(file).catch(() => file);
-      setUploadStep("uploading");
-      const result = await uploadAvatarAction(compressed);
-      if (result.success && result.data) {
-        setAvatarUrl(result.data.url);
+      const sigResult = await getAvatarSignature();
+      if (!sigResult.success || !sigResult.data) {
+        toast.error("Failed to prepare upload");
+        return;
+      }
+      const result = await uploadAssetDirect(file, sigResult.data, "image", (pct) =>
+        setUploadProgress(pct),
+      );
+      const saveResult = await saveAvatarUrl(result.secure_url);
+      if (saveResult.success && saveResult.data) {
+        setAvatarUrl(saveResult.data.url);
         toast.success("Profile photo uploaded successfully");
       } else {
-        toast.error(result.error?.message || "Failed to upload photo");
+        toast.error("Failed to save photo");
       }
     } catch {
       toast.error("Failed to upload photo");
     } finally {
       setUploadingPhoto(false);
-      setUploadStep(null);
+      setUploadProgress(null);
     }
   }
 
@@ -206,7 +222,7 @@ function RegisterContent() {
       className="h-screen flex flex-col px-6 py-8 relative overflow-hidden"
       style={{ background: "var(--bg-page)" }}
     >
-      <UploadOverlay step={uploadStep} />
+      <UploadOverlay progress={uploadProgress} />
       {/* Progress bar */}
       <ProgressBar
         current={step}
