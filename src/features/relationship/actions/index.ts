@@ -128,18 +128,22 @@ export async function joinRelationship(input: JoinRelationshipInput) {
       select: { displayName: true },
     });
 
+    const joinerName = joiner?.displayName || "Your partner";
+    const joinedTitle = `${joinerName} is here!`;
+    const joinedBody = `${joinerName} just joined you on Detto — your story starts now.`;
+
     await prisma.notification.create({
       data: {
         userId: relationship.partnerAId,
         type: "PARTNER_JOINED",
-        title: "Your partner joined!",
-        message: `${joiner?.displayName || "Your partner"} accepted your invitation`,
+        title: joinedTitle,
+        message: joinedBody,
       },
     });
 
     sendPushNotification(relationship.partnerAId, {
-      title: "Your partner joined!",
-      body: `${joiner?.displayName || "Your partner"} accepted your invitation`,
+      title: joinedTitle,
+      body: joinedBody,
       url: "/relation",
     }).catch(() => {});
 

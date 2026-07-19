@@ -377,16 +377,16 @@ export async function checkWishlistItemsForPassedEvents() {
             userId,
             eventId: event.id,
             type: "EVENT_TODAY",
-            title: `Wishlist item checked off!`,
-            message: `${event.title} has been marked as done`,
+            title: `${event.title} is done!`,
+            message: `One wish off the list — ${event.title} really happened. Time to make more.`,
             sentAt: new Date(),
           },
         });
 
         try {
           await sendPushNotification(userId, {
-            title: "Wishlist item checked off!",
-            body: `${event.title} has been marked as done`,
+            title: `${event.title} is done!`,
+            body: `One wish off the list — ${event.title} really happened. Time to make more.`,
             url: "/wishlist",
           });
           notified++;

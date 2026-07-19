@@ -117,19 +117,20 @@ export async function createNote(input: CreateNoteInput) {
         : relationship.partnerB?.displayName || "Your partner";
       const preview = parsed.message
         ? (parsed.message.length > 50 ? parsed.message.slice(0, 50) + "..." : parsed.message)
-        : "sent you a photo";
+        : "Sent you a little something";
+      const noteTitle = `${senderName} left you a note`;
       await prisma.notification.create({
         data: {
           userId: partnerId,
           type: "NOTE_RECEIVED",
-          title: `New note from ${senderName}`,
+          title: noteTitle,
           message: preview,
         },
       });
 
       // Send native push notification
       sendPushNotification(partnerId, {
-        title: `New note from ${senderName}`,
+        title: noteTitle,
         body: preview,
         url: "/home",
       }).catch(() => {});

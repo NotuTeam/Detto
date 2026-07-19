@@ -54,8 +54,8 @@ export async function sendEventReminder(eventId: string) {
       userId,
       eventId: event.id,
       type: "EVENT_REMINDER",
-      title: "Upcoming Event",
-      message: `Reminder: ${event.title} is coming up!`,
+      title: `${event.title} is coming up`,
+      message: `Just a gentle nudge — ${event.title} is around the corner.`,
     });
   }
 }
