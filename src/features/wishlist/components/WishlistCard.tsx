@@ -21,6 +21,7 @@ import {
   Dumbbell,
   Gamepad2,
   Edit3,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { WishlistDetail } from "./WishlistDetailSheet";
@@ -50,6 +51,7 @@ interface WishlistCardProps {
   onEdit: (item: WishlistDetail) => void;
   onToggleFavourite: (id: string) => void;
   onToggleCheck: (id: string) => void;
+  onSchedule: (item: WishlistDetail) => void;
 }
 
 export function WishlistCard({
@@ -60,6 +62,7 @@ export function WishlistCard({
   onEdit,
   onToggleFavourite,
   onToggleCheck,
+  onSchedule,
 }: WishlistCardProps) {
   const isCreator = item.createdBy === currentUserId;
   const Icon = CATEGORY_ICON_MAP[item.category] || CATEGORY_ICON_MAP.OTHER;
@@ -218,6 +221,22 @@ export function WishlistCard({
               fill={item.isFavourite ? "var(--accent)" : "none"}
             />
           </button>
+
+          {/* Schedule: available to both partners, only if not yet
+              linked to an event and not already done */}
+          {!item.linkedEvent && !item.isChecked && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSchedule(item);
+              }}
+              className="p-1.5 cursor-pointer transition-colors"
+              style={{ color: "var(--text-secondary)" }}
+              title="Schedule as event"
+            >
+              <Sparkles size={16} />
+            </button>
+          )}
 
           {/* Edit + delete: creator-only */}
           {isCreator && (

@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Star, Plus } from "lucide-react";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { useUserStore } from "@/stores/user";
 import {
@@ -10,6 +12,7 @@ import {
   deleteWishlistItem,
   toggleFavourite,
   toggleWishlistCheck,
+  createEventFromWishlist,
 } from "@/features/wishlist/actions";
 import { WishlistCard, CATEGORY_ICON_MAP } from "@/features/wishlist/components/WishlistCard";
 import { WishlistForm } from "@/features/wishlist/components/WishlistForm";
@@ -48,6 +51,11 @@ export default function WishlistPage() {
   const [editingItem, setEditingItem] = useState<WishlistDetail | null>(null);
   const [detailItem, setDetailItem] = useState<WishlistDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  // Schedule flow state
+  const [scheduleItem, setScheduleItem] = useState<WishlistDetail | null>(null);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduling, setScheduling] = useState(false);
 
   const fetchItems = useCallback(async () => {
     const result = await getWishlistItems();
@@ -152,6 +160,23 @@ export default function WishlistPage() {
     setDetailOpen(false);
     setEditingItem(item);
     setFormOpen(true);
+  };
+
+  const handleScheduleOpen = (item: WishlistDetail) => {
+    setScheduleItem(item);
+    setScheduleDate("");
+  };
+
+  const handleScheduleConfirm = async () => {
+    if (!scheduleItem || !scheduleDate) return;
+    setScheduling(true);
+    const result = await createEventFromWishlist(scheduleItem.id, scheduleDate);
+    if (result.success) {
+      setScheduleItem(null);
+      setScheduleDate("");
+      fetchItems();
+    }
+    setScheduling(false);
   };
 
   const handleFormClose = () => {
@@ -292,6 +317,7 @@ export default function WishlistPage() {
                     onEdit={handleOpenEditFromCard}
                     onToggleFavourite={handleToggleFavourite}
                     onToggleCheck={handleToggleCheck}
+                    onSchedule={handleScheduleOpen}
                   />
                 ))}
               </div>
@@ -320,6 +346,7 @@ export default function WishlistPage() {
                     onEdit={handleOpenEditFromCard}
                     onToggleFavourite={handleToggleFavourite}
                     onToggleCheck={handleToggleCheck}
+                    onSchedule={handleScheduleOpen}
                   />
                 ))}
               </div>
@@ -346,6 +373,7 @@ export default function WishlistPage() {
                     onEdit={handleOpenEditFromCard}
                     onToggleFavourite={handleToggleFavourite}
                     onToggleCheck={handleToggleCheck}
+                    onSchedule={handleScheduleOpen}
                   />
                 ))}
               </div>
@@ -372,6 +400,40 @@ export default function WishlistPage() {
         onChanged={handleDetailChanged}
         onEdit={handleOpenEditFromDetail}
       />
+
+      {/* Schedule from wishlist BottomSheet */}
+      <BottomSheet
+        isOpen={!!scheduleItem}
+        onClose={() => {
+          setScheduleItem(null);
+          setScheduleDate("");
+        }}
+        title="Create Event from Wishlist"
+      >
+        <div className="flex flex-col gap-4">
+          <p
+            className="text-[0.85rem]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Pick a date, and this wish becomes a plan. Once the day passes, it
+            checks itself off — one more wish, made real.
+          </p>
+          <Input
+            label="Event Date"
+            type="date"
+            value={scheduleDate}
+            onChange={(e) => setScheduleDate(e.target.value)}
+          />
+          <Button
+            fullWidth
+            loading={scheduling}
+            disabled={!scheduleDate}
+            onClick={handleScheduleConfirm}
+          >
+            Create Event
+          </Button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

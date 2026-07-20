@@ -1,28 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import {
   Star,
   Trash2,
   ExternalLink,
   Calendar,
   Edit3,
-  CheckCircle2,
-  Circle,
-  Sparkles,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { ImageViewer } from "@/components/ui/ImageViewer";
 import { CATEGORY_ICON_MAP } from "./WishlistCard";
-import {
-  createEventFromWishlist,
-  deleteWishlistItem,
-  toggleFavourite,
-  toggleWishlistCheck,
-} from "../actions";
 
 export interface WishlistDetail {
   id: string;
@@ -45,6 +34,7 @@ interface WishlistDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
   currentUserId?: string;
+  /** Called after a destructive action (delete) so the parent can refresh. */
   onChanged: () => void;
   onEdit: (item: WishlistDetail) => void;
 }
@@ -57,10 +47,6 @@ export function WishlistDetailSheet({
   onChanged,
   onEdit,
 }: WishlistDetailSheetProps) {
-  const [eventDate, setEventDate] = useState("");
-  const [creatingEvent, setCreatingEvent] = useState(false);
-  const [showScheduleSection, setShowScheduleSection] = useState(false);
-
   if (!item) return null;
 
   const isCreator = item.createdBy === currentUserId;
@@ -72,33 +58,12 @@ export function WishlistDetailSheet({
 
   const handleDelete = async () => {
     if (!confirm("Delete this wish? This cannot be undone.")) return;
+    const { deleteWishlistItem } = await import("../actions");
     const result = await deleteWishlistItem(item.id);
     if (result.success) {
       onChanged();
       onClose();
     }
-  };
-
-  const handleToggleFavourite = async () => {
-    const result = await toggleFavourite(item.id);
-    if (result.success) onChanged();
-  };
-
-  const handleToggleCheck = async () => {
-    const result = await toggleWishlistCheck(item.id);
-    if (result.success) onChanged();
-  };
-
-  const handleCreateEvent = async () => {
-    if (!eventDate) return;
-    setCreatingEvent(true);
-    const result = await createEventFromWishlist(item.id, eventDate);
-    if (result.success) {
-      setShowScheduleSection(false);
-      setEventDate("");
-      onChanged();
-    }
-    setCreatingEvent(false);
   };
 
   return (
@@ -300,114 +265,7 @@ export function WishlistDetailSheet({
           </div>
         )}
 
-        {/* Schedule section (open on demand) */}
-        {!item.linkedEvent && !item.isChecked && showScheduleSection && (
-          <div
-            className="rounded-[var(--radius-md)] p-3 flex flex-col gap-2"
-            style={{
-              background: "var(--surface-alt)",
-              border: "1px dashed var(--border-subtle)",
-            }}
-          >
-            <span
-              className="text-[0.78rem] font-medium"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Pick a date
-            </span>
-            <Input
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                fullWidth
-                onClick={() => {
-                  setShowScheduleSection(false);
-                  setEventDate("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                fullWidth
-                loading={creatingEvent}
-                disabled={!eventDate}
-                onClick={handleCreateEvent}
-              >
-                Schedule
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Actions grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant={item.isChecked ? "ghost" : "secondary"}
-            size="sm"
-            onClick={handleToggleCheck}
-          >
-            {item.isChecked ? (
-              <>
-                <Circle size={14} /> Mark Undone
-              </>
-            ) : (
-              <>
-                <CheckCircle2 size={14} /> Mark Done
-              </>
-            )}
-          </Button>
-
-          <Button
-            variant={item.isFavourite ? "ghost" : "secondary"}
-            size="sm"
-            onClick={handleToggleFavourite}
-          >
-            <Star
-              size={14}
-              fill={item.isFavourite ? "var(--accent)" : "none"}
-              style={{ color: "var(--accent)" }}
-            />
-            {item.isFavourite ? "Unpin" : "Pin"}
-          </Button>
-
-          {/* Schedule: only when no linked event yet */}
-          {!item.linkedEvent && !item.isChecked && !showScheduleSection && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowScheduleSection(true)}
-            >
-              <Sparkles size={14} /> Schedule
-            </Button>
-          )}
-
-          {/* Edit + Delete: creator-only */}
-          {isCreator && (
-            <>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onEdit(item)}
-              >
-                <Edit3 size={14} /> Edit
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDelete}
-              >
-                <Trash2 size={14} /> Delete
-              </Button>
-            </>
-          )}
-        </div>
-
+        {/* Completion date */}
         {item.isChecked && item.checkedAt && (
           <p
             className="text-[0.68rem] text-center"
@@ -420,6 +278,26 @@ export function WishlistDetailSheet({
               year: "numeric",
             })}
           </p>
+        )}
+
+        {/* Actions: only creator can edit / delete */}
+        {isCreator && (
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onEdit(item)}
+            >
+              <Edit3 size={14} /> Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+            >
+              <Trash2 size={14} /> Delete
+            </Button>
+          </div>
         )}
       </div>
     </BottomSheet>
