@@ -118,6 +118,11 @@ export async function updateWishlistItem(itemId: string, input: UpdateWishlistIn
       return { success: false, error: { code: "NOT_FOUND" } };
     }
 
+    // Only the creator can edit a wishlist item
+    if (existing.createdBy !== session.user.id) {
+      return { success: false, error: { code: "FORBIDDEN" } };
+    }
+
     const parsed = updateWishlistSchema.parse(input);
 
     const data: Record<string, unknown> = {};
@@ -157,6 +162,11 @@ export async function deleteWishlistItem(itemId: string) {
     });
     if (!existing) {
       return { success: false, error: { code: "NOT_FOUND" } };
+    }
+
+    // Only the creator can delete a wishlist item
+    if (existing.createdBy !== session.user.id) {
+      return { success: false, error: { code: "FORBIDDEN" } };
     }
 
     // Cascade: delete linked events
